@@ -11,6 +11,8 @@ public class ApplicationDbContext : DbContext
 
     public DbSet<Category> Categories { get; set; }
     public DbSet<Product> Products { get; set; }
+    public DbSet<Order> Orders { get; set; }
+    public DbSet<OrderItem> OrderItems { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -74,6 +76,81 @@ public class ApplicationDbContext : DbContext
             entity.HasIndex(e => e.CategoryId);
             entity.HasIndex(e => e.IsActive);
             entity.HasIndex(e => e.DisplayOrder);
+        });
+
+        // Order configuration
+        modelBuilder.Entity<Order>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.CustomerName)
+                .IsRequired()
+                .HasMaxLength(100);
+            entity.Property(e => e.CustomerPhone)
+                .IsRequired()
+                .HasMaxLength(20);
+            entity.Property(e => e.CustomerEmail)
+                .HasMaxLength(100);
+            entity.Property(e => e.DeliveryAddress)
+                .IsRequired()
+                .HasMaxLength(500);
+            entity.Property(e => e.Subtotal)
+                .HasPrecision(10, 2)
+                .IsRequired();
+            entity.Property(e => e.DeliveryFee)
+                .HasPrecision(10, 2)
+                .IsRequired();
+            entity.Property(e => e.Total)
+                .HasPrecision(10, 2)
+                .IsRequired();
+            entity.Property(e => e.Status)
+                .IsRequired();
+            entity.Property(e => e.CreatedAt)
+                .IsRequired();
+            entity.Property(e => e.UpdatedAt)
+                .IsRequired();
+            entity.Property(e => e.Notes)
+                .HasMaxLength(1000);
+            entity.Property(e => e.IsDelivery)
+                .IsRequired();
+
+            // Indexes for performance
+            entity.HasIndex(e => e.Status);
+            entity.HasIndex(e => e.CreatedAt);
+            entity.HasIndex(e => e.CustomerPhone);
+        });
+
+        // OrderItem configuration
+        modelBuilder.Entity<OrderItem>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.ProductName)
+                .IsRequired()
+                .HasMaxLength(100);
+            entity.Property(e => e.UnitPrice)
+                .HasPrecision(10, 2)
+                .IsRequired();
+            entity.Property(e => e.Quantity)
+                .IsRequired();
+            entity.Property(e => e.Subtotal)
+                .HasPrecision(10, 2)
+                .IsRequired();
+            entity.Property(e => e.Notes)
+                .HasMaxLength(500);
+
+            // Relationships
+            entity.HasOne(e => e.Order)
+                .WithMany(e => e.Items)
+                .HasForeignKey(e => e.OrderId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(e => e.Product)
+                .WithMany()
+                .HasForeignKey(e => e.ProductId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // Indexes for performance
+            entity.HasIndex(e => e.OrderId);
+            entity.HasIndex(e => e.ProductId);
         });
 
         // Seed data

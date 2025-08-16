@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.FileProviders;
 using PedejaApp.Application.Common.Interfaces;
 using PedejaApp.Application.Features.Categories;
 using PedejaApp.Application.Services;
@@ -100,6 +101,14 @@ else
 
 // Serve static files
 app.UseStaticFiles();
+
+// Configure uploads directory specifically
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(
+        Path.Combine(builder.Environment.ContentRootPath, "wwwroot", "uploads")),
+    RequestPath = "/uploads"
+});
 
 app.MapControllers();
 
