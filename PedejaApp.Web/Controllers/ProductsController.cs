@@ -343,6 +343,47 @@ namespace PedejaApp.Web.Controllers
         }
 
         /// <summary>
+        /// Update product price quickly
+        /// </summary>
+        [HttpPatch("{id}/price")]
+        public async Task<ActionResult<ProductDto>> UpdateProductPrice(int id, [FromBody] UpdateProductPriceRequest request)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                    return BadRequest(ModelState);
+
+                var updatedProduct = await _productService.UpdateProductPriceAsync(id, request.Price);
+
+                var productDto = new ProductDto
+                {
+                    Id = updatedProduct.Id,
+                    Name = updatedProduct.Name,
+                    Description = updatedProduct.Description,
+                    Price = updatedProduct.Price,
+                    CategoryId = updatedProduct.CategoryId,
+                    CategoryName = updatedProduct.Category?.Name ?? "",
+                    ImageUrl = updatedProduct.ImageUrl,
+                    IsActive = updatedProduct.IsActive,
+                    DisplayOrder = updatedProduct.DisplayOrder,
+                    CreatedAt = updatedProduct.CreatedAt,
+                    UpdatedAt = updatedProduct.UpdatedAt
+                };
+
+                return Ok(productDto);
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating product price {ProductId}", id);
+                return StatusCode(500, "Internal server error while updating product price");
+            }
+        }
+
+        /// <summary>
         /// Reorder products by updating display order
         /// </summary>
         [HttpPatch("reorder")]
