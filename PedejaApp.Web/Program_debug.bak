@@ -1,0 +1,12 @@
+var builder = WebApplication.CreateBuilder(args);
+
+// Add minimal services
+builder.Services.AddControllers();
+
+var app = builder.Build();
+
+// Minimal configuration
+app.MapGet("/api/test", () => new { Message = "Test endpoint working", Timestamp = DateTime.UtcNow });
+app.MapControllers();
+
+app.Run();
