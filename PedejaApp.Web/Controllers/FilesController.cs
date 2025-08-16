@@ -7,7 +7,7 @@ namespace PedejaApp.Web.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize]
+[AllowAnonymous]
 public class FilesController : ControllerBase
 {
     private readonly IFileStorageService _fileStorageService;

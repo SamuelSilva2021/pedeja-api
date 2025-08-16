@@ -108,6 +108,40 @@ namespace PedejaApp.Web.Controllers
         }
 
         /// <summary>
+        /// Get products by category
+        /// </summary>
+        [HttpGet("by-category/{categoryId}")]
+        public async Task<ActionResult<IEnumerable<ProductDto>>> GetProductsByCategory(int categoryId)
+        {
+            try
+            {
+                var products = await _productService.GetProductsByCategoryAsync(categoryId);
+                
+                var productDtos = products.Select(p => new ProductDto
+                {
+                    Id = p.Id,
+                    Name = p.Name,
+                    Description = p.Description,
+                    Price = p.Price,
+                    CategoryId = p.CategoryId,
+                    CategoryName = p.Category?.Name ?? "",
+                    ImageUrl = p.ImageUrl,
+                    IsActive = p.IsActive,
+                    DisplayOrder = p.DisplayOrder,
+                    CreatedAt = p.CreatedAt,
+                    UpdatedAt = p.UpdatedAt
+                });
+
+                return Ok(productDtos);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting products by category {CategoryId}", categoryId);
+                return StatusCode(500, "Internal server error while getting products by category");
+            }
+        }
+
+        /// <summary>
         /// Get specific product by ID
         /// </summary>
         [HttpGet("{id}")]
