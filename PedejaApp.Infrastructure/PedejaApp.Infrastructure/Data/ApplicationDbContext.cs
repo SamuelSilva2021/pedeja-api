@@ -13,6 +13,8 @@ public class ApplicationDbContext : DbContext
     public DbSet<Product> Products { get; set; }
     public DbSet<Order> Orders { get; set; }
     public DbSet<OrderItem> OrderItems { get; set; }
+    public DbSet<OrderStatusHistory> OrderStatusHistory { get; set; }
+    public DbSet<OrderRejection> OrderRejections { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -151,6 +153,62 @@ public class ApplicationDbContext : DbContext
             // Indexes for performance
             entity.HasIndex(e => e.OrderId);
             entity.HasIndex(e => e.ProductId);
+        });
+
+        // OrderStatusHistory configuration
+        modelBuilder.Entity<OrderStatusHistory>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.OrderId)
+                .IsRequired();
+            entity.Property(e => e.Status)
+                .IsRequired();
+            entity.Property(e => e.Timestamp)
+                .IsRequired();
+            entity.Property(e => e.Notes)
+                .HasMaxLength(500);
+            entity.Property(e => e.UserId)
+                .IsRequired()
+                .HasMaxLength(50);
+
+            // Relationships
+            entity.HasOne(e => e.Order)
+                .WithMany(e => e.StatusHistory)
+                .HasForeignKey(e => e.OrderId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Indexes for performance
+            entity.HasIndex(e => e.OrderId);
+            entity.HasIndex(e => e.Status);
+            entity.HasIndex(e => e.Timestamp);
+        });
+
+        // OrderRejection configuration
+        modelBuilder.Entity<OrderRejection>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.OrderId)
+                .IsRequired();
+            entity.Property(e => e.Reason)
+                .IsRequired()
+                .HasMaxLength(100);
+            entity.Property(e => e.Notes)
+                .HasMaxLength(500);
+            entity.Property(e => e.RejectedAt)
+                .IsRequired();
+            entity.Property(e => e.RejectedBy)
+                .IsRequired()
+                .HasMaxLength(50);
+
+            // Relationships
+            entity.HasOne(e => e.Order)
+                .WithOne(e => e.Rejection)
+                .HasForeignKey<OrderRejection>(e => e.OrderId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Indexes for performance
+            entity.HasIndex(e => e.OrderId);
+            entity.HasIndex(e => e.RejectedAt);
         });
 
         // Seed data

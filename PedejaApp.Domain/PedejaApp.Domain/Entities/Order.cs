@@ -43,8 +43,18 @@ public class Order
 
     public bool IsDelivery { get; set; } = true;
 
-    // Navigation property
+    public int? EstimatedPreparationMinutes { get; set; }
+    
+    public DateTime? EstimatedDeliveryTime { get; set; }
+
+    public int QueuePosition { get; set; } = 0;
+
+    // Navigation properties
     public virtual ICollection<OrderItem> Items { get; set; } = new List<OrderItem>();
+    
+    public virtual ICollection<OrderStatusHistory> StatusHistory { get; set; } = new List<OrderStatusHistory>();
+    
+    public virtual OrderRejection? Rejection { get; set; }
 }
 
 public enum OrderStatus
@@ -55,5 +65,6 @@ public enum OrderStatus
     Ready = 3,
     OutForDelivery = 4,
     Delivered = 5,
-    Cancelled = 6
+    Cancelled = 6,
+    Rejected = 7
 }
