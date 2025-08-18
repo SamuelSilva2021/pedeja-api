@@ -305,6 +305,101 @@ namespace PedejaApp.Infrastructure.Migrations
                     b.ToTable("OrderStatusHistory");
                 });
 
+            modelBuilder.Entity("PedejaApp.Domain.Entities.Payment", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("decimal(10,2)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("GatewayResponse")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<string>("GatewayTransactionId")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<int>("Method")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<int>("OrderId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("ProcessedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedAt");
+
+                    b.HasIndex("GatewayTransactionId");
+
+                    b.HasIndex("OrderId");
+
+                    b.HasIndex("Status");
+
+                    b.ToTable("Payments");
+                });
+
+            modelBuilder.Entity("PedejaApp.Domain.Entities.PaymentRefund", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("decimal(10,2)");
+
+                    b.Property<string>("GatewayRefundId")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("GatewayResponse")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<int>("PaymentId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Reason")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<DateTime>("RefundedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("RefundedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PaymentId");
+
+                    b.HasIndex("RefundedAt");
+
+                    b.ToTable("PaymentRefunds");
+                });
+
             modelBuilder.Entity("PedejaApp.Domain.Entities.Product", b =>
                 {
                     b.Property<int>("Id")
@@ -567,6 +662,28 @@ namespace PedejaApp.Infrastructure.Migrations
                     b.Navigation("Order");
                 });
 
+            modelBuilder.Entity("PedejaApp.Domain.Entities.Payment", b =>
+                {
+                    b.HasOne("PedejaApp.Domain.Entities.Order", "Order")
+                        .WithMany("Payments")
+                        .HasForeignKey("OrderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Order");
+                });
+
+            modelBuilder.Entity("PedejaApp.Domain.Entities.PaymentRefund", b =>
+                {
+                    b.HasOne("PedejaApp.Domain.Entities.Payment", "Payment")
+                        .WithMany("Refunds")
+                        .HasForeignKey("PaymentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Payment");
+                });
+
             modelBuilder.Entity("PedejaApp.Domain.Entities.Product", b =>
                 {
                     b.HasOne("PedejaApp.Domain.Entities.Category", "Category")
@@ -598,9 +715,16 @@ namespace PedejaApp.Infrastructure.Migrations
                 {
                     b.Navigation("Items");
 
+                    b.Navigation("Payments");
+
                     b.Navigation("Rejection");
 
                     b.Navigation("StatusHistory");
+                });
+
+            modelBuilder.Entity("PedejaApp.Domain.Entities.Payment", b =>
+                {
+                    b.Navigation("Refunds");
                 });
 
             modelBuilder.Entity("PedejaApp.Domain.Entities.Product", b =>

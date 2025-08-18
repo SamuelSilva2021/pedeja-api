@@ -19,6 +19,16 @@ namespace PedejaApp.Web.Controllers
             _logger = logger;
         }
 
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<Payment>>> GetPayments()
+        {
+            var payments = await _context.Payments
+                .OrderByDescending(p => p.CreatedAt)
+                .ToListAsync();
+            
+            return Ok(payments);
+        }
+
         [HttpPost("process")]
         public async Task<ActionResult<PaymentResponse>> ProcessPayment([FromBody] PaymentRequest request)
         {

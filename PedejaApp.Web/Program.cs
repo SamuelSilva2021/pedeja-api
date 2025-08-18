@@ -56,6 +56,13 @@ builder.Services.AddScoped<IProductService, SimpleProductService>();
 builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 builder.Services.AddScoped<IProductRepository, ProductRepository>();
 
+// Register payment services - commented out for testing
+// builder.Services.AddScoped<IPixService, PixService>();
+// builder.Services.AddScoped<IStripeService, StripeService>();
+// builder.Services.AddScoped<IPagSeguroService, PagSeguroService>();
+// builder.Services.AddHttpClient<StripeService>();
+// builder.Services.AddHttpClient<PagSeguroService>();
+
 // Configure Entity Framework
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
