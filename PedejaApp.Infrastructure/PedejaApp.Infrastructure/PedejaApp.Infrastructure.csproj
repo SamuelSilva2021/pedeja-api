@@ -2,6 +2,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\PedejaApp.Application\PedejaApp.Application\PedejaApp.Application.csproj" />
+    <ProjectReference Include="..\..\PedejaApp.Domain\PedejaApp.Domain\PedejaApp.Domain.csproj" />
   </ItemGroup>
 
   <ItemGroup>

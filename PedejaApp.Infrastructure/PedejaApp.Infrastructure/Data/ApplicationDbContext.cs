@@ -17,6 +17,8 @@ public class ApplicationDbContext : DbContext
     public DbSet<OrderItem> OrderItems { get; set; }
     public DbSet<OrderStatusHistory> OrderStatusHistory { get; set; }
     public DbSet<OrderRejection> OrderRejections { get; set; }
+    public DbSet<Payment> Payments { get; set; }
+    public DbSet<PaymentRefund> PaymentRefunds { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -211,6 +213,79 @@ public class ApplicationDbContext : DbContext
             // Indexes for performance
             entity.HasIndex(e => e.OrderId);
             entity.HasIndex(e => e.RejectedAt);
+        });
+
+        // Payment configuration
+        modelBuilder.Entity<Payment>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.OrderId)
+                .IsRequired();
+            entity.Property(e => e.Amount)
+                .IsRequired()
+                .HasColumnType("decimal(10,2)");
+            entity.Property(e => e.Method)
+                .IsRequired();
+            entity.Property(e => e.Status)
+                .IsRequired();
+            entity.Property(e => e.GatewayTransactionId)
+                .HasMaxLength(200);
+            entity.Property(e => e.GatewayResponse)
+                .HasMaxLength(1000);
+            entity.Property(e => e.CreatedAt)
+                .IsRequired();
+            entity.Property(e => e.Notes)
+                .HasMaxLength(500);
+
+            // Relationships
+            entity.HasOne(e => e.Order)
+                .WithMany(e => e.Payments)
+                .HasForeignKey(e => e.OrderId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasMany(e => e.Refunds)
+                .WithOne(e => e.Payment)
+                .HasForeignKey(e => e.PaymentId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Indexes for performance
+            entity.HasIndex(e => e.OrderId);
+            entity.HasIndex(e => e.Status);
+            entity.HasIndex(e => e.CreatedAt);
+            entity.HasIndex(e => e.GatewayTransactionId);
+        });
+
+        // PaymentRefund configuration
+        modelBuilder.Entity<PaymentRefund>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.PaymentId)
+                .IsRequired();
+            entity.Property(e => e.Amount)
+                .IsRequired()
+                .HasColumnType("decimal(10,2)");
+            entity.Property(e => e.Reason)
+                .IsRequired()
+                .HasMaxLength(500);
+            entity.Property(e => e.RefundedAt)
+                .IsRequired();
+            entity.Property(e => e.RefundedBy)
+                .IsRequired()
+                .HasMaxLength(100);
+            entity.Property(e => e.GatewayRefundId)
+                .HasMaxLength(200);
+            entity.Property(e => e.GatewayResponse)
+                .HasMaxLength(1000);
+
+            // Relationships
+            entity.HasOne(e => e.Payment)
+                .WithMany(e => e.Refunds)
+                .HasForeignKey(e => e.PaymentId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Indexes for performance
+            entity.HasIndex(e => e.PaymentId);
+            entity.HasIndex(e => e.RefundedAt);
         });
 
         // Seed data

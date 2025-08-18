@@ -55,6 +55,8 @@ public class Order
     public virtual ICollection<OrderStatusHistory> StatusHistory { get; set; } = new List<OrderStatusHistory>();
     
     public virtual OrderRejection? Rejection { get; set; }
+    
+    public virtual ICollection<Payment> Payments { get; set; } = new List<Payment>();
 }
 
 public enum OrderStatus

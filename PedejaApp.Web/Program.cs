@@ -68,17 +68,26 @@ builder.Services.Configure<IISServerOptions>(options =>
 
 var app = builder.Build();
 
-// Ensure database is created
+// Ensure database is created and migrated
 using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
     try
     {
-        context.Database.EnsureCreated();
+        context.Database.Migrate(); // Apply any pending migrations
     }
     catch (Exception ex)
     {
-        Console.WriteLine($"Erro ao criar o banco de dados: {ex.Message}");
+        Console.WriteLine($"Erro ao aplicar migrações: {ex.Message}");
+        // Fallback to EnsureCreated if migrations fail
+        try
+        {
+            context.Database.EnsureCreated();
+        }
+        catch (Exception ex2)
+        {
+            Console.WriteLine($"Erro ao criar o banco de dados: {ex2.Message}");
+        }
     }
 }
 
