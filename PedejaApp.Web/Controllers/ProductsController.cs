@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using PedejaApp.Application.Services.Interfaces;
 using PedejaApp.Domain.Entities;
 using PedejaApp.Application.Models;
+using WebDTOs = PedejaApp.Web.Models.DTOs;
 
 namespace PedejaApp.Web.Controllers
 {
@@ -405,6 +406,35 @@ namespace PedejaApp.Web.Controllers
             {
                 _logger.LogError(ex, "Error reordering products");
                 return StatusCode(500, "Internal server error while reordering products");
+            }
+        }
+
+        /// <summary>
+        /// Toggle product availability quickly
+        /// </summary>
+        [HttpPatch("{id}/toggle-availability")]
+        public async Task<ActionResult<WebDTOs.ToggleAvailabilityResponse>> ToggleProductAvailability(int id)
+        {
+            try
+            {
+                var product = await _productService.GetProductByIdAsync(id);
+                if (product == null)
+                    return NotFound($"Product with ID {id} not found");
+
+                // Use existing toggle method
+                var updatedProduct = await _productService.ToggleProductStatusAsync(id);
+
+                return Ok(new WebDTOs.ToggleAvailabilityResponse
+                {
+                    Id = id,
+                    IsActive = updatedProduct.IsActive,
+                    Timestamp = DateTime.UtcNow
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error toggling product availability {ProductId}", id);
+                return StatusCode(500, "Internal server error while toggling product availability");
             }
         }
     }

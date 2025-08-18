@@ -24,10 +24,16 @@ namespace PedejaApp.Domain.Entities
 
         public bool IsActive { get; set; } = true;
 
+        public int DisplayOrder { get; set; }
+
         // Navigation Properties
         [ForeignKey("CategoryId")]
         public virtual Category Category { get; set; } = null!;
 
         public virtual ICollection<ProductImage> Images { get; set; } = new List<ProductImage>();
+
+        public virtual ICollection<ProductPriceHistory> PriceHistory { get; set; } = new List<ProductPriceHistory>();
+
+        public virtual ICollection<ProductActivityLog> ActivityLogs { get; set; } = new List<ProductActivityLog>();
     }
 }

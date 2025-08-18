@@ -30,5 +30,11 @@ namespace PedejaApp.Application.Services.Interfaces
         // DTO-based methods for better API integration
         Task<Product> CreateProductFromDtoAsync(CreateProductRequest request);
         Task<Product> UpdateProductFromDtoAsync(int id, UpdateProductRequest request);
+
+        // Story 2.3: Quick Operations
+        Task UpdateProductAvailabilityAsync(int id, bool isActive);
+        Task<BulkOperationResult> BulkUpdateProductsAsync(BulkUpdateRequest request);
+        Task<IEnumerable<object>> GetProductPriceHistoryAsync(int productId);
+        Task LogProductActivityAsync(int productId, string action, string? previousValue, string? newValue, string? userId = null);
     }
 }

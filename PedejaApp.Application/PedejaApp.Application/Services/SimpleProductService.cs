@@ -161,5 +161,108 @@ namespace PedejaApp.Application.Services
 
             return await UpdateProductAsync(existingProduct);
         }
+
+        // Story 2.3: Quick Operations Implementation
+        public async Task UpdateProductAvailabilityAsync(int id, bool isActive)
+        {
+            var product = await _productRepository.GetByIdAsync(id);
+            if (product == null)
+                throw new ArgumentException("Product not found");
+
+            var previousStatus = product.IsActive;
+            product.IsActive = isActive;
+            product.UpdatedAt = DateTime.UtcNow;
+
+            await _productRepository.UpdateAsync(product);
+
+            // Log the activity
+            await LogProductActivityAsync(id, "toggle_availability", 
+                previousStatus.ToString(), isActive.ToString());
+        }
+
+        public async Task<BulkOperationResult> BulkUpdateProductsAsync(BulkUpdateRequest request)
+        {
+            var result = new BulkOperationResult();
+            
+            foreach (var productId in request.ProductIds)
+            {
+                try
+                {
+                    var product = await _productRepository.GetByIdAsync(productId);
+                    if (product == null)
+                    {
+                        result.FailedIds.Add(productId);
+                        result.FailureCount++;
+                        continue;
+                    }
+
+                    switch (request.Operation.ToLower())
+                    {
+                        case "toggle-availability":
+                            var newStatus = !product.IsActive;
+                            await UpdateProductAvailabilityAsync(productId, newStatus);
+                            break;
+
+                        case "update-price":
+                            if (request.Value != null && decimal.TryParse(request.Value.ToString(), out var newPrice))
+                            {
+                                await UpdateProductPriceAsync(productId, newPrice);
+                            }
+                            else
+                            {
+                                result.FailedIds.Add(productId);
+                                result.FailureCount++;
+                                continue;
+                            }
+                            break;
+
+                        case "change-category":
+                            if (request.Value != null && int.TryParse(request.Value.ToString(), out var categoryId))
+                            {
+                                product.CategoryId = categoryId;
+                                product.UpdatedAt = DateTime.UtcNow;
+                                await _productRepository.UpdateAsync(product);
+                                await LogProductActivityAsync(productId, "change_category", 
+                                    product.CategoryId.ToString(), categoryId.ToString());
+                            }
+                            else
+                            {
+                                result.FailedIds.Add(productId);
+                                result.FailureCount++;
+                                continue;
+                            }
+                            break;
+
+                        default:
+                            result.FailedIds.Add(productId);
+                            result.FailureCount++;
+                            continue;
+                    }
+
+                    result.ProcessedIds.Add(productId);
+                    result.SuccessCount++;
+                }
+                catch
+                {
+                    result.FailedIds.Add(productId);
+                    result.FailureCount++;
+                }
+            }
+
+            return result;
+        }
+
+        public async Task<IEnumerable<object>> GetProductPriceHistoryAsync(int productId)
+        {
+            // TODO: Implement after migration is created
+            await Task.CompletedTask;
+            return new List<object>();
+        }
+
+        public async Task LogProductActivityAsync(int productId, string action, string? previousValue, string? newValue, string? userId = null)
+        {
+            // TODO: Implement after migration is created
+            await Task.CompletedTask;
+        }
     }
 }

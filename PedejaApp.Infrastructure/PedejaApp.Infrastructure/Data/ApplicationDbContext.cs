@@ -12,6 +12,7 @@ public class ApplicationDbContext : DbContext
     public DbSet<Category> Categories { get; set; }
     public DbSet<Product> Products { get; set; }
     public DbSet<ProductImage> ProductImages { get; set; }
+    // TODO: Add ProductPriceHistory and ProductActivityLog after migration
     public DbSet<Order> Orders { get; set; }
     public DbSet<OrderItem> OrderItems { get; set; }
     public DbSet<OrderStatusHistory> OrderStatusHistory { get; set; }
@@ -380,5 +381,68 @@ public class ApplicationDbContext : DbContext
             entity.HasIndex(e => e.IsDeleted);
             entity.HasIndex(e => e.UploadDate);
         });
+
+        // TODO: Add ProductPriceHistory and ProductActivityLog configuration after migration
+        /*
+        // ProductPriceHistory configuration
+        modelBuilder.Entity<ProductPriceHistory>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.ProductId)
+                .IsRequired();
+            entity.Property(e => e.PreviousPrice)
+                .HasPrecision(10, 2)
+                .IsRequired();
+            entity.Property(e => e.NewPrice)
+                .HasPrecision(10, 2)
+                .IsRequired();
+            entity.Property(e => e.ChangedAt)
+                .IsRequired();
+            entity.Property(e => e.ChangedBy)
+                .HasMaxLength(100);
+            entity.Property(e => e.Reason)
+                .HasMaxLength(200);
+
+            // Relationships
+            entity.HasOne(e => e.Product)
+                .WithMany(p => p.PriceHistory)
+                .HasForeignKey(e => e.ProductId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Indexes for performance
+            entity.HasIndex(e => e.ProductId);
+            entity.HasIndex(e => e.ChangedAt);
+        });
+
+        // ProductActivityLog configuration
+        modelBuilder.Entity<ProductActivityLog>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.ProductId)
+                .IsRequired();
+            entity.Property(e => e.Action)
+                .IsRequired()
+                .HasMaxLength(50);
+            entity.Property(e => e.PreviousValue)
+                .HasMaxLength(200);
+            entity.Property(e => e.NewValue)
+                .HasMaxLength(200);
+            entity.Property(e => e.Timestamp)
+                .IsRequired();
+            entity.Property(e => e.UserId)
+                .HasMaxLength(100);
+
+            // Relationships
+            entity.HasOne(e => e.Product)
+                .WithMany(p => p.ActivityLogs)
+                .HasForeignKey(e => e.ProductId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Indexes for performance
+            entity.HasIndex(e => e.ProductId);
+            entity.HasIndex(e => e.Action);
+            entity.HasIndex(e => e.Timestamp);
+        });
+        */
     }
 }
