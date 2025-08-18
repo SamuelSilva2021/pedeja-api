@@ -437,5 +437,107 @@ namespace PedejaApp.Web.Controllers
                 return StatusCode(500, "Internal server error while toggling product availability");
             }
         }
+
+        /// <summary>
+        /// Story 2.3: Quick price update for daily management
+        /// </summary>
+        [HttpPatch("{id}/quick-price")]
+        public async Task<ActionResult<WebDTOs.QuickPriceUpdateResponse>> QuickPriceUpdate(int id, [FromBody] WebDTOs.QuickPriceUpdateRequest request)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                    return BadRequest(ModelState);
+
+                var product = await _productService.GetProductByIdAsync(id);
+                if (product == null)
+                    return NotFound($"Product with ID {id} not found");
+
+                var oldPrice = product.Price;
+                var updatedProduct = await _productService.UpdateProductPriceAsync(id, request.Price);
+
+                return Ok(new WebDTOs.QuickPriceUpdateResponse
+                {
+                    Id = id,
+                    OldPrice = oldPrice,
+                    NewPrice = updatedProduct.Price,
+                    Timestamp = DateTime.UtcNow
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in quick price update for product {ProductId}", id);
+                return StatusCode(500, "Internal server error while updating price");
+            }
+        }
+
+        /// <summary>
+        /// Story 2.3: Bulk availability update for daily management
+        /// </summary>
+        [HttpPatch("bulk-availability")]
+        public async Task<ActionResult<WebDTOs.BulkUpdateResponse>> BulkUpdateAvailability([FromBody] WebDTOs.BulkUpdateRequest request)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                    return BadRequest(ModelState);
+
+                var results = new List<WebDTOs.ToggleAvailabilityResponse>();
+                var errors = new List<string>();
+
+                foreach (var productId in request.ProductIds)
+                {
+                    try
+                    {
+                        var product = await _productService.GetProductByIdAsync(productId);
+                        if (product == null)
+                        {
+                            errors.Add($"Product with ID {productId} not found");
+                            continue;
+                        }
+
+                        // Only toggle if current status is different from desired
+                        if (product.IsActive != request.SetActive)
+                        {
+                            var updatedProduct = await _productService.ToggleProductStatusAsync(productId);
+                            results.Add(new WebDTOs.ToggleAvailabilityResponse
+                            {
+                                Id = productId,
+                                IsActive = updatedProduct.IsActive,
+                                Timestamp = DateTime.UtcNow
+                            });
+                        }
+                        else
+                        {
+                            // Product already in desired state
+                            results.Add(new WebDTOs.ToggleAvailabilityResponse
+                            {
+                                Id = productId,
+                                IsActive = product.IsActive,
+                                Timestamp = DateTime.UtcNow
+                            });
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Error updating availability for product {ProductId}", productId);
+                        errors.Add($"Error updating product {productId}: {ex.Message}");
+                    }
+                }
+
+                return Ok(new WebDTOs.BulkUpdateResponse
+                {
+                    SuccessCount = results.Count,
+                    Results = results,
+                    Errors = errors,
+                    Timestamp = DateTime.UtcNow
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in bulk availability update");
+                return StatusCode(500, "Internal server error while bulk updating availability");
+            }
+        }
     }
 }

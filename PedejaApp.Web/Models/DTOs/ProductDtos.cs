@@ -120,9 +120,9 @@ namespace PedejaApp.Web.Models.DTOs
     public class QuickPriceUpdateResponse
     {
         public int Id { get; set; }
-        public decimal PreviousPrice { get; set; }
+        public decimal OldPrice { get; set; }
         public decimal NewPrice { get; set; }
-        public DateTime UpdatedAt { get; set; }
+        public DateTime Timestamp { get; set; }
     }
 
     public class BulkUpdateRequest
@@ -131,9 +131,15 @@ namespace PedejaApp.Web.Models.DTOs
         public List<int> ProductIds { get; set; } = new();
         
         [Required]
-        public string Operation { get; set; } = string.Empty; // "toggle-availability", "update-price", "change-category"
-        
-        public object? Value { get; set; } // Price for price updates, CategoryId for category changes
+        public bool SetActive { get; set; } // true to make active, false to make inactive
+    }
+
+    public class BulkUpdateResponse
+    {
+        public int SuccessCount { get; set; }
+        public List<ToggleAvailabilityResponse> Results { get; set; } = new();
+        public List<string> Errors { get; set; } = new();
+        public DateTime Timestamp { get; set; }
     }
 
     public class BulkOperationResult
