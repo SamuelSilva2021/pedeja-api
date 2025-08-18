@@ -11,6 +11,7 @@ public class ApplicationDbContext : DbContext
 
     public DbSet<Category> Categories { get; set; }
     public DbSet<Product> Products { get; set; }
+    public DbSet<ProductImage> ProductImages { get; set; }
     public DbSet<Order> Orders { get; set; }
     public DbSet<OrderItem> OrderItems { get; set; }
     public DbSet<OrderStatusHistory> OrderStatusHistory { get; set; }
@@ -218,6 +219,7 @@ public class ApplicationDbContext : DbContext
     private static void SeedData(ModelBuilder modelBuilder)
     {
         // Seed categories
+        var seedDate = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc);
         modelBuilder.Entity<Category>().HasData(
             new Category
             {
@@ -226,8 +228,8 @@ public class ApplicationDbContext : DbContext
                 Description = "Pratos principais do cardápio",
                 DisplayOrder = 1,
                 IsActive = true,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
+                CreatedAt = seedDate,
+                UpdatedAt = seedDate
             },
             new Category
             {
@@ -236,8 +238,8 @@ public class ApplicationDbContext : DbContext
                 Description = "Bebidas e refrescos",
                 DisplayOrder = 2,
                 IsActive = true,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
+                CreatedAt = seedDate,
+                UpdatedAt = seedDate
             },
             new Category
             {
@@ -246,8 +248,8 @@ public class ApplicationDbContext : DbContext
                 Description = "Doces e sobremesas",
                 DisplayOrder = 3,
                 IsActive = true,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
+                CreatedAt = seedDate,
+                UpdatedAt = seedDate
             },
             new Category
             {
@@ -256,8 +258,8 @@ public class ApplicationDbContext : DbContext
                 Description = "Aperitivos e entradas",
                 DisplayOrder = 4,
                 IsActive = true,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
+                CreatedAt = seedDate,
+                UpdatedAt = seedDate
             }
         );
 
@@ -272,8 +274,8 @@ public class ApplicationDbContext : DbContext
                 CategoryId = 1,
                 DisplayOrder = 1,
                 IsActive = true,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
+                CreatedAt = seedDate,
+                UpdatedAt = seedDate
             },
             new Product
             {
@@ -284,8 +286,8 @@ public class ApplicationDbContext : DbContext
                 CategoryId = 1,
                 DisplayOrder = 2,
                 IsActive = true,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
+                CreatedAt = seedDate,
+                UpdatedAt = seedDate
             },
             new Product
             {
@@ -296,8 +298,8 @@ public class ApplicationDbContext : DbContext
                 CategoryId = 2,
                 DisplayOrder = 1,
                 IsActive = true,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
+                CreatedAt = seedDate,
+                UpdatedAt = seedDate
             },
             new Product
             {
@@ -308,8 +310,8 @@ public class ApplicationDbContext : DbContext
                 CategoryId = 2,
                 DisplayOrder = 2,
                 IsActive = true,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
+                CreatedAt = seedDate,
+                UpdatedAt = seedDate
             },
             new Product
             {
@@ -320,8 +322,8 @@ public class ApplicationDbContext : DbContext
                 CategoryId = 3,
                 DisplayOrder = 1,
                 IsActive = true,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
+                CreatedAt = seedDate,
+                UpdatedAt = seedDate
             },
             new Product
             {
@@ -332,9 +334,51 @@ public class ApplicationDbContext : DbContext
                 CategoryId = 4,
                 DisplayOrder = 1,
                 IsActive = true,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
+                CreatedAt = seedDate,
+                UpdatedAt = seedDate
             }
         );
+
+        // ProductImage configuration
+        modelBuilder.Entity<ProductImage>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.FileName)
+                .IsRequired()
+                .HasMaxLength(255);
+            entity.Property(e => e.OriginalName)
+                .IsRequired()
+                .HasMaxLength(255);
+            entity.Property(e => e.FilePath)
+                .IsRequired()
+                .HasMaxLength(500);
+            entity.Property(e => e.MimeType)
+                .IsRequired()
+                .HasMaxLength(100);
+            entity.Property(e => e.FileSize)
+                .IsRequired();
+            entity.Property(e => e.AspectRatio)
+                .HasMaxLength(50);
+            entity.Property(e => e.UploadDate)
+                .IsRequired();
+            entity.Property(e => e.ThumbnailPath)
+                .HasMaxLength(500);
+            entity.Property(e => e.MediumPath)
+                .HasMaxLength(500);
+            entity.Property(e => e.LargePath)
+                .HasMaxLength(500);
+
+            // Foreign key relationship
+            entity.HasOne(e => e.Product)
+                .WithMany(p => p.Images)
+                .HasForeignKey(e => e.ProductId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Indexes for performance
+            entity.HasIndex(e => e.ProductId);
+            entity.HasIndex(e => e.IsPrimary);
+            entity.HasIndex(e => e.IsDeleted);
+            entity.HasIndex(e => e.UploadDate);
+        });
     }
 }

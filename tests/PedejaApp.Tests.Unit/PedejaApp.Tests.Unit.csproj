@@ -20,8 +20,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\PedejaApp.Infrastructure\PedejaApp.Infrastructure\PedejaApp.Infrastructure.csproj" />
-    <ProjectReference Include="..\..\src\PedejaApp.Application\PedejaApp.Application\PedejaApp.Application.csproj" />
+    <ProjectReference Include="..\..\PedejaApp.Infrastructure\PedejaApp.Infrastructure\PedejaApp.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\PedejaApp.Application\PedejaApp.Application\PedejaApp.Application.csproj" />
+    <ProjectReference Include="..\..\PedejaApp.Domain\PedejaApp.Domain\PedejaApp.Domain.csproj" />
   </ItemGroup>
 
 </Project>

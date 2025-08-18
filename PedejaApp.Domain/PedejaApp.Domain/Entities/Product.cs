@@ -26,4 +26,6 @@ public class Product : BaseEntity
 
     // Navigation property
     public virtual Category Category { get; set; } = null!;
+    
+    public virtual ICollection<ProductImage> Images { get; set; } = new List<ProductImage>();
 }

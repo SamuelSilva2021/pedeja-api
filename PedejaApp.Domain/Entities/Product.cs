@@ -27,5 +27,7 @@ namespace PedejaApp.Domain.Entities
         // Navigation Properties
         [ForeignKey("CategoryId")]
         public virtual Category Category { get; set; } = null!;
+
+        public virtual ICollection<ProductImage> Images { get; set; } = new List<ProductImage>();
     }
 }

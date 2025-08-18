@@ -69,46 +69,46 @@ namespace PedejaApp.Infrastructure.Migrations
                         new
                         {
                             Id = 1,
-                            CreatedAt = new DateTime(2025, 8, 16, 16, 26, 6, 766, DateTimeKind.Utc).AddTicks(1374),
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             Description = "Pratos principais do cardápio",
                             DisplayOrder = 1,
                             IsActive = true,
                             IsDeleted = false,
                             Name = "Pratos Principais",
-                            UpdatedAt = new DateTime(2025, 8, 16, 16, 26, 6, 766, DateTimeKind.Utc).AddTicks(1521)
+                            UpdatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)
                         },
                         new
                         {
                             Id = 2,
-                            CreatedAt = new DateTime(2025, 8, 16, 16, 26, 6, 766, DateTimeKind.Utc).AddTicks(1660),
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             Description = "Bebidas e refrescos",
                             DisplayOrder = 2,
                             IsActive = true,
                             IsDeleted = false,
                             Name = "Bebidas",
-                            UpdatedAt = new DateTime(2025, 8, 16, 16, 26, 6, 766, DateTimeKind.Utc).AddTicks(1660)
+                            UpdatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)
                         },
                         new
                         {
                             Id = 3,
-                            CreatedAt = new DateTime(2025, 8, 16, 16, 26, 6, 766, DateTimeKind.Utc).AddTicks(1663),
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             Description = "Doces e sobremesas",
                             DisplayOrder = 3,
                             IsActive = true,
                             IsDeleted = false,
                             Name = "Sobremesas",
-                            UpdatedAt = new DateTime(2025, 8, 16, 16, 26, 6, 766, DateTimeKind.Utc).AddTicks(1663)
+                            UpdatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)
                         },
                         new
                         {
                             Id = 4,
-                            CreatedAt = new DateTime(2025, 8, 16, 16, 26, 6, 766, DateTimeKind.Utc).AddTicks(1666),
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             Description = "Aperitivos e entradas",
                             DisplayOrder = 4,
                             IsActive = true,
                             IsDeleted = false,
                             Name = "Entradas",
-                            UpdatedAt = new DateTime(2025, 8, 16, 16, 26, 6, 766, DateTimeKind.Utc).AddTicks(1666)
+                            UpdatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)
                         });
                 });
 
@@ -146,12 +146,21 @@ namespace PedejaApp.Infrastructure.Migrations
                         .HasPrecision(10, 2)
                         .HasColumnType("decimal(10,2)");
 
+                    b.Property<DateTime?>("EstimatedDeliveryTime")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("EstimatedPreparationMinutes")
+                        .HasColumnType("integer");
+
                     b.Property<bool>("IsDelivery")
                         .HasColumnType("boolean");
 
                     b.Property<string>("Notes")
                         .HasMaxLength(1000)
                         .HasColumnType("character varying(1000)");
+
+                    b.Property<int>("QueuePosition")
+                        .HasColumnType("integer");
 
                     b.Property<int>("Status")
                         .HasColumnType("integer");
@@ -221,6 +230,81 @@ namespace PedejaApp.Infrastructure.Migrations
                     b.ToTable("OrderItems");
                 });
 
+            modelBuilder.Entity("PedejaApp.Domain.Entities.OrderRejection", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<int>("OrderId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Reason")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<DateTime>("RejectedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("RejectedBy")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OrderId")
+                        .IsUnique();
+
+                    b.HasIndex("RejectedAt");
+
+                    b.ToTable("OrderRejections");
+                });
+
+            modelBuilder.Entity("PedejaApp.Domain.Entities.OrderStatusHistory", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<int>("OrderId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("Timestamp")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OrderId");
+
+                    b.HasIndex("Status");
+
+                    b.HasIndex("Timestamp");
+
+                    b.ToTable("OrderStatusHistory");
+                });
+
             modelBuilder.Entity("PedejaApp.Domain.Entities.Product", b =>
                 {
                     b.Property<int>("Id")
@@ -279,80 +363,167 @@ namespace PedejaApp.Infrastructure.Migrations
                         {
                             Id = 1,
                             CategoryId = 1,
-                            CreatedAt = new DateTime(2025, 8, 16, 16, 26, 6, 766, DateTimeKind.Utc).AddTicks(8179),
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             Description = "Hambúrguer artesanal com carne bovina, queijo, alface, tomate e molho especial",
                             DisplayOrder = 1,
                             IsActive = true,
                             IsDeleted = false,
                             Name = "Hambúrguer Clássico",
                             Price = 25.90m,
-                            UpdatedAt = new DateTime(2025, 8, 16, 16, 26, 6, 766, DateTimeKind.Utc).AddTicks(8180)
+                            UpdatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)
                         },
                         new
                         {
                             Id = 2,
                             CategoryId = 1,
-                            CreatedAt = new DateTime(2025, 8, 16, 16, 26, 6, 766, DateTimeKind.Utc).AddTicks(8185),
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             Description = "Pizza tradicional com molho de tomate, mussarela e manjericão fresco",
                             DisplayOrder = 2,
                             IsActive = true,
                             IsDeleted = false,
                             Name = "Pizza Margherita",
                             Price = 32.50m,
-                            UpdatedAt = new DateTime(2025, 8, 16, 16, 26, 6, 766, DateTimeKind.Utc).AddTicks(8186)
+                            UpdatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)
                         },
                         new
                         {
                             Id = 3,
                             CategoryId = 2,
-                            CreatedAt = new DateTime(2025, 8, 16, 16, 26, 6, 766, DateTimeKind.Utc).AddTicks(8188),
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             Description = "Refrigerante gelado em lata de 350ml - diversos sabores",
                             DisplayOrder = 1,
                             IsActive = true,
                             IsDeleted = false,
                             Name = "Refrigerante Lata",
                             Price = 5.50m,
-                            UpdatedAt = new DateTime(2025, 8, 16, 16, 26, 6, 766, DateTimeKind.Utc).AddTicks(8189)
+                            UpdatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)
                         },
                         new
                         {
                             Id = 4,
                             CategoryId = 2,
-                            CreatedAt = new DateTime(2025, 8, 16, 16, 26, 6, 766, DateTimeKind.Utc).AddTicks(8191),
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             Description = "Suco natural de frutas frescas - 400ml",
                             DisplayOrder = 2,
                             IsActive = true,
                             IsDeleted = false,
                             Name = "Suco Natural",
                             Price = 8.90m,
-                            UpdatedAt = new DateTime(2025, 8, 16, 16, 26, 6, 766, DateTimeKind.Utc).AddTicks(8192)
+                            UpdatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)
                         },
                         new
                         {
                             Id = 5,
                             CategoryId = 3,
-                            CreatedAt = new DateTime(2025, 8, 16, 16, 26, 6, 766, DateTimeKind.Utc).AddTicks(8194),
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             Description = "Pudim caseiro de leite condensado com calda de açúcar",
                             DisplayOrder = 1,
                             IsActive = true,
                             IsDeleted = false,
                             Name = "Pudim de Leite",
                             Price = 12.90m,
-                            UpdatedAt = new DateTime(2025, 8, 16, 16, 26, 6, 766, DateTimeKind.Utc).AddTicks(8194)
+                            UpdatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)
                         },
                         new
                         {
                             Id = 6,
                             CategoryId = 4,
-                            CreatedAt = new DateTime(2025, 8, 16, 16, 26, 6, 766, DateTimeKind.Utc).AddTicks(8196),
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             Description = "Batatas crocantes cortadas na casa, tempero especial - serve até 3 pessoas",
                             DisplayOrder = 1,
                             IsActive = true,
                             IsDeleted = false,
                             Name = "Porção de Batata Frita",
                             Price = 18.50m,
-                            UpdatedAt = new DateTime(2025, 8, 16, 16, 26, 6, 766, DateTimeKind.Utc).AddTicks(8197)
+                            UpdatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)
                         });
+                });
+
+            modelBuilder.Entity("PedejaApp.Domain.Entities.ProductImage", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("AspectRatio")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("DeletedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("FileName")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)");
+
+                    b.Property<string>("FilePath")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<long>("FileSize")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("Height")
+                        .HasColumnType("integer");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsPrimary")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("LargePath")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<string>("MediumPath")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<string>("MimeType")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("OriginalName")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)");
+
+                    b.Property<int>("ProductId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("ThumbnailPath")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("UploadDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("Width")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("IsDeleted");
+
+                    b.HasIndex("IsPrimary");
+
+                    b.HasIndex("ProductId");
+
+                    b.HasIndex("UploadDate");
+
+                    b.ToTable("ProductImages");
                 });
 
             modelBuilder.Entity("PedejaApp.Domain.Entities.OrderItem", b =>
@@ -374,6 +545,28 @@ namespace PedejaApp.Infrastructure.Migrations
                     b.Navigation("Product");
                 });
 
+            modelBuilder.Entity("PedejaApp.Domain.Entities.OrderRejection", b =>
+                {
+                    b.HasOne("PedejaApp.Domain.Entities.Order", "Order")
+                        .WithOne("Rejection")
+                        .HasForeignKey("PedejaApp.Domain.Entities.OrderRejection", "OrderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Order");
+                });
+
+            modelBuilder.Entity("PedejaApp.Domain.Entities.OrderStatusHistory", b =>
+                {
+                    b.HasOne("PedejaApp.Domain.Entities.Order", "Order")
+                        .WithMany("StatusHistory")
+                        .HasForeignKey("OrderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Order");
+                });
+
             modelBuilder.Entity("PedejaApp.Domain.Entities.Product", b =>
                 {
                     b.HasOne("PedejaApp.Domain.Entities.Category", "Category")
@@ -385,6 +578,17 @@ namespace PedejaApp.Infrastructure.Migrations
                     b.Navigation("Category");
                 });
 
+            modelBuilder.Entity("PedejaApp.Domain.Entities.ProductImage", b =>
+                {
+                    b.HasOne("PedejaApp.Domain.Entities.Product", "Product")
+                        .WithMany("Images")
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Product");
+                });
+
             modelBuilder.Entity("PedejaApp.Domain.Entities.Category", b =>
                 {
                     b.Navigation("Products");
@@ -393,6 +597,15 @@ namespace PedejaApp.Infrastructure.Migrations
             modelBuilder.Entity("PedejaApp.Domain.Entities.Order", b =>
                 {
                     b.Navigation("Items");
+
+                    b.Navigation("Rejection");
+
+                    b.Navigation("StatusHistory");
+                });
+
+            modelBuilder.Entity("PedejaApp.Domain.Entities.Product", b =>
+                {
+                    b.Navigation("Images");
                 });
 #pragma warning restore 612, 618
         }
