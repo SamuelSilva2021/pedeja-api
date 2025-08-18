@@ -4,6 +4,7 @@ namespace PedejaApp.Domain.Interfaces;
 
 public interface IProductRepository : IRepository<Product>
 {
+    Task<IEnumerable<Product>> GetAllProductsAsync();
     Task<IEnumerable<Product>> GetActiveProductsAsync();
     Task<IEnumerable<Product>> GetProductsByCategoryAsync(int categoryId);
     Task<IEnumerable<Product>> GetActiveProductsByCategoryAsync(int categoryId);

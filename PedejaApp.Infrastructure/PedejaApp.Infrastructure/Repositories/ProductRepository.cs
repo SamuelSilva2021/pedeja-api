@@ -11,6 +11,13 @@ public class ProductRepository : Repository<Product>, IProductRepository
     {
     }
 
+    public async Task<IEnumerable<Product>> GetAllProductsAsync() =>
+        await _dbSet
+            .Where(p => !p.IsDeleted)
+            .Include(p => p.Category)
+            .OrderBy(p => p.DisplayOrder)
+            .ToListAsync();
+
     public async Task<IEnumerable<Product>> GetActiveProductsAsync()
     {
         return await _dbSet

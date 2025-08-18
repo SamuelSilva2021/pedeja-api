@@ -16,15 +16,11 @@ namespace PedejaApp.Application.Services
             _categoryRepository = categoryRepository;
         }
 
-        public async Task<IEnumerable<Product>> GetAllProductsAsync()
-        {
-            return await _productRepository.GetAllAsync();
-        }
+        public async Task<IEnumerable<Product>> GetAllProductsAsync() =>
+            await _productRepository.GetAllProductsAsync();
 
-        public async Task<IEnumerable<Product>> GetActiveProductsAsync()
-        {
-            return await _productRepository.GetActiveProductsAsync();
-        }
+        public async Task<IEnumerable<Product>> GetActiveProductsAsync() =>
+            await _productRepository.GetActiveProductsAsync();
 
         public async Task<IEnumerable<Product>> GetProductsByCategoryAsync(int categoryId)
         {

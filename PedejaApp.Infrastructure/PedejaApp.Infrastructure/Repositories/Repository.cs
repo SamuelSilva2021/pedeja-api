@@ -16,15 +16,11 @@ public class Repository<T> : IRepository<T> where T : BaseEntity
         _dbSet = context.Set<T>();
     }
 
-    public virtual async Task<IEnumerable<T>> GetAllAsync()
-    {
-        return await _dbSet.Where(x => !x.IsDeleted).ToListAsync();
-    }
+    public virtual async Task<IEnumerable<T>> GetAllAsync() => 
+        await _dbSet.Where(x => !x.IsDeleted).ToListAsync();
 
-    public virtual async Task<T?> GetByIdAsync(int id)
-    {
-        return await _dbSet.FirstOrDefaultAsync(x => x.Id == id && !x.IsDeleted);
-    }
+    public virtual async Task<T?> GetByIdAsync(int id) => 
+        await _dbSet.FirstOrDefaultAsync(x => x.Id == id && !x.IsDeleted);
 
     public virtual async Task<T> AddAsync(T entity)
     {
