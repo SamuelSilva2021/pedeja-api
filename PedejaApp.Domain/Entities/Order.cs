@@ -60,11 +60,10 @@ public class Order
 public enum OrderStatus
 {
     Pending = 0,
-    Confirmed = 1,
-    Preparing = 2,
+    Accepted = 1,
+    Processing = 2,
     Ready = 3,
-    OutForDelivery = 4,
-    Delivered = 5,
-    Cancelled = 6,
-    Rejected = 7
+    Completed = 4,
+    Rejected = 5,
+    Cancelled = 6
 }

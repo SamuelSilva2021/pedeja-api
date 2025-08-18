@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PedejaApp.Domain.Entities;
 using PedejaApp.Infrastructure.Data;
+using PedejaApp.Application.Models;
 
 namespace PedejaApp.Web.Controllers;
 
@@ -17,21 +18,51 @@ public class OrdersController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<Order>>> GetOrders()
+    public async Task<ActionResult<IEnumerable<object>>> GetOrders()
     {
-        return await _context.Orders
+        var orders = await _context.Orders
             .Include(o => o.Items)
-            .ThenInclude(i => i.Product)
             .OrderByDescending(o => o.CreatedAt)
             .ToListAsync();
+
+        var response = orders.Select(order => new
+        {
+            Id = order.Id,
+            CustomerName = order.CustomerName,
+            CustomerPhone = order.CustomerPhone,
+            CustomerEmail = order.CustomerEmail,
+            DeliveryAddress = order.DeliveryAddress,
+            Subtotal = order.Subtotal,
+            DeliveryFee = order.DeliveryFee,
+            Total = order.Total,
+            Status = order.Status,
+            IsDelivery = order.IsDelivery,
+            Notes = order.Notes,
+            CreatedAt = order.CreatedAt,
+            UpdatedAt = order.UpdatedAt,
+            QueuePosition = order.QueuePosition,
+            EstimatedPreparationMinutes = order.EstimatedPreparationMinutes,
+            EstimatedDeliveryTime = order.EstimatedDeliveryTime,
+            Items = order.Items.Select(i => new
+            {
+                Id = i.Id,
+                ProductId = i.ProductId,
+                ProductName = i.ProductName,
+                UnitPrice = i.UnitPrice,
+                Quantity = i.Quantity,
+                Subtotal = i.Subtotal,
+                Notes = i.Notes
+            }).ToList()
+        });
+
+        return Ok(response);
     }
 
     [HttpGet("{id}")]
-    public async Task<ActionResult<Order>> GetOrder(int id)
+    public async Task<ActionResult<object>> GetOrder(int id)
     {
         var order = await _context.Orders
             .Include(o => o.Items)
-            .ThenInclude(i => i.Product)
             .FirstOrDefaultAsync(o => o.Id == id);
 
         if (order == null)
@@ -39,11 +70,41 @@ public class OrdersController : ControllerBase
             return NotFound();
         }
 
-        return order;
+        var response = new
+        {
+            Id = order.Id,
+            CustomerName = order.CustomerName,
+            CustomerPhone = order.CustomerPhone,
+            CustomerEmail = order.CustomerEmail,
+            DeliveryAddress = order.DeliveryAddress,
+            Subtotal = order.Subtotal,
+            DeliveryFee = order.DeliveryFee,
+            Total = order.Total,
+            Status = order.Status,
+            IsDelivery = order.IsDelivery,
+            Notes = order.Notes,
+            CreatedAt = order.CreatedAt,
+            UpdatedAt = order.UpdatedAt,
+            QueuePosition = order.QueuePosition,
+            EstimatedPreparationMinutes = order.EstimatedPreparationMinutes,
+            EstimatedDeliveryTime = order.EstimatedDeliveryTime,
+            Items = order.Items.Select(i => new
+            {
+                Id = i.Id,
+                ProductId = i.ProductId,
+                ProductName = i.ProductName,
+                UnitPrice = i.UnitPrice,
+                Quantity = i.Quantity,
+                Subtotal = i.Subtotal,
+                Notes = i.Notes
+            }).ToList()
+        };
+
+        return Ok(response);
     }
 
     [HttpPost]
-    public async Task<ActionResult<Order>> CreateOrder(CreateOrderRequest request)
+    public async Task<ActionResult<object>> CreateOrder(CreateOrderRequest request)
     {
         var order = new Order
         {
@@ -85,7 +146,34 @@ public class OrdersController : ControllerBase
         _context.Orders.Add(order);
         await _context.SaveChangesAsync();
 
-        return CreatedAtAction(nameof(GetOrder), new { id = order.Id }, order);
+        // Return a clean response without circular references
+        var response = new
+        {
+            Id = order.Id,
+            CustomerName = order.CustomerName,
+            CustomerPhone = order.CustomerPhone,
+            CustomerEmail = order.CustomerEmail,
+            DeliveryAddress = order.DeliveryAddress,
+            Subtotal = order.Subtotal,
+            DeliveryFee = order.DeliveryFee,
+            Total = order.Total,
+            Status = order.Status,
+            IsDelivery = order.IsDelivery,
+            Notes = order.Notes,
+            CreatedAt = order.CreatedAt,
+            Items = order.Items.Select(i => new
+            {
+                Id = i.Id,
+                ProductId = i.ProductId,
+                ProductName = i.ProductName,
+                UnitPrice = i.UnitPrice,
+                Quantity = i.Quantity,
+                Subtotal = i.Subtotal,
+                Notes = i.Notes
+            }).ToList()
+        };
+
+        return Ok(response);
     }
 
     [HttpPut("{id}/status")]
