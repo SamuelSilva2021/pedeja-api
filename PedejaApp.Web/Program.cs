@@ -51,6 +51,7 @@ builder.Services.AddCors(options =>
 });
 
 // Register application services
+builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<IFileStorageService, LocalFileStorageService>();
 builder.Services.AddScoped<IImageProcessingService, ImageProcessingService>();
 builder.Services.AddScoped<PedejaApp.Application.Features.Categories.ICategoryService, PedejaApp.Application.Features.Categories.CategoryService>();

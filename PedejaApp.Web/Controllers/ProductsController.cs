@@ -20,6 +20,26 @@ namespace PedejaApp.Web.Controllers
         }
 
         /// <summary>
+        /// Build complete URL for product images
+        /// </summary>
+        private string BuildImageUrl(string? relativePath)
+        {
+            if (string.IsNullOrWhiteSpace(relativePath))
+            {
+                return string.Empty;
+            }
+
+            var request = HttpContext.Request;
+            var scheme = request.Scheme;
+            var host = request.Host.Value;
+            
+            // Remove leading slash if present
+            var cleanPath = relativePath.TrimStart('/');
+            
+            return $"{scheme}://{host}/uploads/{cleanPath}";
+        }
+
+        /// <summary>
         /// Get all products with optional filters
         /// </summary>
         [HttpGet]
@@ -58,7 +78,7 @@ namespace PedejaApp.Web.Controllers
                     Price = p.Price,
                     CategoryId = p.CategoryId,
                     CategoryName = p.Category?.Name ?? "",
-                    ImageUrl = p.ImageUrl,
+                    ImageUrl = BuildImageUrl(p.ImageUrl),
                     IsActive = p.IsActive,
                     DisplayOrder = p.DisplayOrder,
                     CreatedAt = p.CreatedAt,
@@ -92,7 +112,7 @@ namespace PedejaApp.Web.Controllers
                     Price = p.Price,
                     CategoryId = p.CategoryId,
                     CategoryName = p.Category?.Name ?? "",
-                    ImageUrl = p.ImageUrl,
+                    ImageUrl = BuildImageUrl(p.ImageUrl),
                     IsActive = p.IsActive,
                     DisplayOrder = p.DisplayOrder,
                     CreatedAt = p.CreatedAt,
@@ -126,7 +146,7 @@ namespace PedejaApp.Web.Controllers
                     Price = p.Price,
                     CategoryId = p.CategoryId,
                     CategoryName = p.Category?.Name ?? "",
-                    ImageUrl = p.ImageUrl,
+                    ImageUrl = BuildImageUrl(p.ImageUrl),
                     IsActive = p.IsActive,
                     DisplayOrder = p.DisplayOrder,
                     CreatedAt = p.CreatedAt,
@@ -162,7 +182,7 @@ namespace PedejaApp.Web.Controllers
                     Price = product.Price,
                     CategoryId = product.CategoryId,
                     CategoryName = product.Category?.Name ?? "",
-                    ImageUrl = product.ImageUrl,
+                    ImageUrl = BuildImageUrl(product.ImageUrl),
                     IsActive = product.IsActive,
                     DisplayOrder = product.DisplayOrder,
                     CreatedAt = product.CreatedAt,
