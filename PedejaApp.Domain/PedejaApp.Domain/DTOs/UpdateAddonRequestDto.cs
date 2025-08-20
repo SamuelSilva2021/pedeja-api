@@ -1,7 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using PedejaApp.Domain.Enuns;
 
-namespace PedejaApp.Web.Models.DTOs;
+namespace PedejaApp.Domain.DTOs;
 
 public class UpdateAddonRequestDto
 {

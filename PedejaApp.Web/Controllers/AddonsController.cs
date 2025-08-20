@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using PedejaApp.Application.Services.Interfaces;
 using PedejaApp.Domain.DTOs;
-using PedejaApp.Web.Models.DTOs;
 
 namespace PedejaApp.Web.Controllers;
 
@@ -37,7 +36,9 @@ public class AddonsController : ControllerBase
                 Description = a.Description,
                 Price = a.Price,
                 ImageUrl = a.ImageUrl,
-                DisplayOrder = a.DisplayOrder
+                DisplayOrder = a.DisplayOrder,
+                AddonGroupId = a.AddonGroupId,
+                IsActive = a.IsActive
             });
 
             return Ok(addonDtos);
@@ -68,7 +69,9 @@ public class AddonsController : ControllerBase
                 Description = addon.Description,
                 Price = addon.Price,
                 ImageUrl = addon.ImageUrl,
-                DisplayOrder = addon.DisplayOrder
+                DisplayOrder = addon.DisplayOrder,
+                AddonGroupId = addon.AddonGroupId,
+                IsActive = addon.IsActive
             };
 
             return Ok(addonDto);
@@ -100,7 +103,9 @@ public class AddonsController : ControllerBase
                 Description = addon.Description,
                 Price = addon.Price,
                 ImageUrl = addon.ImageUrl,
-                DisplayOrder = addon.DisplayOrder
+                DisplayOrder = addon.DisplayOrder,
+                AddonGroupId = addon.AddonGroupId,
+                IsActive = addon.IsActive
             };
 
             return CreatedAtAction(nameof(GetAddon), new { id = addon.Id }, addonDto);
@@ -136,7 +141,9 @@ public class AddonsController : ControllerBase
                 Description = addon.Description,
                 Price = addon.Price,
                 ImageUrl = addon.ImageUrl,
-                DisplayOrder = addon.DisplayOrder
+                DisplayOrder = addon.DisplayOrder,
+                AddonGroupId = addon.AddonGroupId,
+                IsActive = addon.IsActive
             };
 
             return Ok(addonDto);
@@ -195,7 +202,9 @@ public class AddonsController : ControllerBase
                 Description = addon.Description,
                 Price = addon.Price,
                 ImageUrl = addon.ImageUrl,
-                DisplayOrder = addon.DisplayOrder
+                DisplayOrder = addon.DisplayOrder,
+                AddonGroupId = addon.AddonGroupId,
+                IsActive = addon.IsActive
             };
 
             return Ok(addonDto);

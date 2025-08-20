@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using PedejaApp.Application.Services.Interfaces;
 using PedejaApp.Domain.DTOs;
-using PedejaApp.Web.Models.DTOs;
 
 namespace PedejaApp.Web.Controllers;
 
@@ -40,6 +39,7 @@ public class AddonGroupsController : ControllerBase
                 MaxSelections = ag.MaxSelections,
                 IsRequired = ag.IsRequired,
                 DisplayOrder = ag.DisplayOrder,
+                IsActive = ag.IsActive,
                 Addons = ag.Addons.Select(a => new AddonResponseDto
                 {
                     Id = a.Id,
@@ -47,7 +47,9 @@ public class AddonGroupsController : ControllerBase
                     Description = a.Description,
                     Price = a.Price,
                     ImageUrl = a.ImageUrl,
-                    DisplayOrder = a.DisplayOrder
+                    DisplayOrder = a.DisplayOrder,
+                    AddonGroupId = a.AddonGroupId,
+                    IsActive = a.IsActive
                 }).ToList()
             });
 
@@ -82,6 +84,7 @@ public class AddonGroupsController : ControllerBase
                 MaxSelections = addonGroup.MaxSelections,
                 IsRequired = addonGroup.IsRequired,
                 DisplayOrder = addonGroup.DisplayOrder,
+                IsActive = addonGroup.IsActive,
                 Addons = addonGroup.Addons.Select(a => new AddonResponseDto
                 {
                     Id = a.Id,
@@ -89,7 +92,9 @@ public class AddonGroupsController : ControllerBase
                     Description = a.Description,
                     Price = a.Price,
                     ImageUrl = a.ImageUrl,
-                    DisplayOrder = a.DisplayOrder
+                    DisplayOrder = a.DisplayOrder,
+                    AddonGroupId = a.AddonGroupId,
+                    IsActive = a.IsActive
                 }).ToList()
             };
 
@@ -164,6 +169,7 @@ public class AddonGroupsController : ControllerBase
                 MaxSelections = addonGroup.MaxSelections,
                 IsRequired = addonGroup.IsRequired,
                 DisplayOrder = addonGroup.DisplayOrder,
+                IsActive = addonGroup.IsActive,
                 Addons = addonGroup.Addons.Select(a => new AddonResponseDto
                 {
                     Id = a.Id,
@@ -171,7 +177,9 @@ public class AddonGroupsController : ControllerBase
                     Description = a.Description,
                     Price = a.Price,
                     ImageUrl = a.ImageUrl,
-                    DisplayOrder = a.DisplayOrder
+                    DisplayOrder = a.DisplayOrder,
+                    AddonGroupId = a.AddonGroupId,
+                    IsActive = a.IsActive
                 }).ToList()
             };
 
@@ -184,6 +192,53 @@ public class AddonGroupsController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Erro ao atualizar grupo de adicionais {AddonGroupId}", id);
+            return StatusCode(500, "Erro interno do servidor");
+        }
+    }
+
+    /// <summary>
+    /// Alternar status do grupo de adicionais
+    /// </summary>
+    [HttpPatch("{id}/toggle-status")]
+    public async Task<ActionResult<AddonGroupResponseDto>> ToggleAddonGroupStatus(int id)
+    {
+        try
+        {
+            var addonGroup = await _addonGroupService.ToggleAddonGroupStatusAsync(id);
+
+            var addonGroupDto = new AddonGroupResponseDto
+            {
+                Id = addonGroup.Id,
+                Name = addonGroup.Name,
+                Description = addonGroup.Description,
+                Type = addonGroup.Type,
+                MinSelections = addonGroup.MinSelections,
+                MaxSelections = addonGroup.MaxSelections,
+                IsRequired = addonGroup.IsRequired,
+                DisplayOrder = addonGroup.DisplayOrder,
+                IsActive = addonGroup.IsActive,
+                Addons = addonGroup.Addons.Select(a => new AddonResponseDto
+                {
+                    Id = a.Id,
+                    Name = a.Name,
+                    Description = a.Description,
+                    Price = a.Price,
+                    ImageUrl = a.ImageUrl,
+                    DisplayOrder = a.DisplayOrder,
+                    AddonGroupId = a.AddonGroupId,
+                    IsActive = a.IsActive
+                }).ToList()
+            };
+
+            return Ok(addonGroupDto);
+        }
+        catch (ArgumentException ex)
+        {
+            return NotFound(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Erro ao alterar status do grupo de adicionais {AddonGroupId}", id);
             return StatusCode(500, "Erro interno do servidor");
         }
     }

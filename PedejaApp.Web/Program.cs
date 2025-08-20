@@ -63,6 +63,8 @@ builder.Services.AddScoped<IAddonGroupService, AddonGroupService>();
 builder.Services.AddScoped<IAddonRepository, AddonRepository>();
 builder.Services.AddScoped<IAddonGroupRepository, AddonGroupRepository>();
 builder.Services.AddScoped<IAddonService, AddonService>();
+builder.Services.AddScoped<IProductAddonGroupService, ProductAddonGroupService>();
+builder.Services.AddScoped<IProductAddonGroupRepository, ProductAddonGroupRepository>();
 
 // Configure Entity Framework
 builder.Services.AddDbContext<ApplicationDbContext>(options =>

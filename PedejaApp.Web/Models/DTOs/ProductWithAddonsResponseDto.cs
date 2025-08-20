@@ -1,4 +1,6 @@
-﻿namespace PedejaApp.Web.Models.DTOs
+﻿using PedejaApp.Domain.DTOs;
+
+namespace PedejaApp.Web.Models.DTOs
 {
     public class ProductWithAddonsResponseDto
     {
