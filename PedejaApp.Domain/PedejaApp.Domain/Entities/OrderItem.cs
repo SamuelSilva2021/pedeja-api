@@ -30,4 +30,5 @@ public class OrderItem
     // Navigation properties
     public virtual Order Order { get; set; } = null!;
     public virtual Product Product { get; set; } = null!;
+    public virtual ICollection<OrderItemAddon> Addons { get; set; } = new List<OrderItemAddon>();
 }

@@ -4,6 +4,7 @@ using PedejaApp.Domain.Entities;
 using PedejaApp.Infrastructure.Data;
 using PedejaApp.Application.Models;
 using System.ComponentModel.DataAnnotations;
+using PedejaApp.Web.Models.DTOs;
 
 namespace PedejaApp.Web.Controllers;
 
@@ -105,7 +106,7 @@ public class OrdersController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<ActionResult<object>> CreateOrder([FromBody] CreateOrderRequest request)
+    public async Task<ActionResult<object>> CreateOrder([FromBody] CreateOrderRequestDto request)
     {
         var order = new Order
         {
@@ -178,7 +179,7 @@ public class OrdersController : ControllerBase
     }
 
     [HttpPut("{id}/status")]
-    public async Task<IActionResult> UpdateOrderStatus(int id, UpdateOrderStatusRequest request)
+    public async Task<IActionResult> UpdateOrderStatus(int id, UpdateOrderStatusRequestDto request)
     {
         var order = await _context.Orders.FindAsync(id);
         if (order == null)
@@ -194,7 +195,7 @@ public class OrdersController : ControllerBase
     }
 
     [HttpPost("{id}/accept")]
-    public async Task<ActionResult<object>> AcceptOrder(int id, AcceptOrderRequest request)
+    public async Task<ActionResult<object>> AcceptOrder(int id, AcceptOrderRequestDto request)
     {
         var order = await _context.Orders.Include(o => o.Items).FirstOrDefaultAsync(o => o.Id == id);
         if (order == null)
@@ -246,7 +247,7 @@ public class OrdersController : ControllerBase
     }
 
     [HttpPost("{id}/reject")]
-    public async Task<ActionResult<object>> RejectOrder(int id, RejectOrderRequest request)
+    public async Task<ActionResult<object>> RejectOrder(int id, RejectOrderRequestDto request)
     {
         var order = await _context.Orders.Include(o => o.Items).FirstOrDefaultAsync(o => o.Id == id);
         if (order == null)
@@ -288,66 +289,4 @@ public class OrdersController : ControllerBase
 
         return NoContent();
     }
-}
-
-public class CreateOrderRequest
-{
-    [Required]
-    [StringLength(100, MinimumLength = 2)]
-    public string CustomerName { get; set; } = string.Empty;
-    
-    [Required]
-    [StringLength(20, MinimumLength = 10)]
-    public string CustomerPhone { get; set; } = string.Empty;
-    
-    [EmailAddress]
-    public string? CustomerEmail { get; set; }
-    
-    [Required]
-    [StringLength(500, MinimumLength = 10)]
-    public string DeliveryAddress { get; set; } = string.Empty;
-    
-    public bool IsDelivery { get; set; }
-    
-    [StringLength(1000)]
-    public string? Notes { get; set; }
-    
-    [Required]
-    [MinLength(1, ErrorMessage = "At least one item is required")]
-    public List<CreateOrderItemRequest> Items { get; set; } = new();
-}
-
-public class CreateOrderItemRequest
-{
-    [Required]
-    [Range(1, int.MaxValue, ErrorMessage = "ProductId must be greater than 0")]
-    public int ProductId { get; set; }
-    
-    [Required]
-    [Range(1, 99, ErrorMessage = "Quantity must be between 1 and 99")]
-    public int Quantity { get; set; }
-    
-    [StringLength(500)]
-    public string? Notes { get; set; }
-}
-
-public class UpdateOrderStatusRequest
-{
-    public OrderStatus Status { get; set; }
-}
-
-public class AcceptOrderRequest
-{
-    public int? EstimatedPreparationMinutes { get; set; }
-    public string? Notes { get; set; }
-}
-
-public class RejectOrderRequest
-{
-    [Required]
-    [StringLength(200, MinimumLength = 3)]
-    public string Reason { get; set; } = string.Empty;
-    
-    [StringLength(500)]
-    public string? Notes { get; set; }
 }

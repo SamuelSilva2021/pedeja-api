@@ -27,4 +27,8 @@
     <ProjectReference Include="..\PedejaApp.Infrastructure\PedejaApp.Infrastructure\PedejaApp.Infrastructure.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Models\Enuns\" />
+  </ItemGroup>
+
 </Project>

@@ -25,7 +25,7 @@ public class Product : BaseEntity
     public string? ImageUrl { get; set; }
 
     // Navigation property
-    public virtual Category Category { get; set; } = null!;
-    
+    public virtual Category Category { get; set; } = null!;  
     public virtual ICollection<ProductImage> Images { get; set; } = new List<ProductImage>();
+    public virtual ICollection<ProductAddonGroup> AddonGroups { get; set; } = new List<ProductAddonGroup>();
 }

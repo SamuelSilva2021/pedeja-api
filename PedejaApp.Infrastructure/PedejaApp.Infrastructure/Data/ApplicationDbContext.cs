@@ -19,6 +19,10 @@ public class ApplicationDbContext : DbContext
     public DbSet<OrderRejection> OrderRejections { get; set; }
     public DbSet<Payment> Payments { get; set; }
     public DbSet<PaymentRefund> PaymentRefunds { get; set; }
+    public DbSet<AddonGroup> AddonGroups { get; set; }
+    public DbSet<Addon> Addons { get; set; }
+    public DbSet<ProductAddonGroup> ProductAddonGroups { get; set; }
+    public DbSet<OrderItemAddon> OrderItemAddons { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -286,6 +290,51 @@ public class ApplicationDbContext : DbContext
             // Indexes for performance
             entity.HasIndex(e => e.PaymentId);
             entity.HasIndex(e => e.RefundedAt);
+        });
+
+        // AddonGroup configuration
+        modelBuilder.Entity<AddonGroup>(entity =>
+        {
+            entity.HasIndex(e => e.Name).IsUnique();
+        });
+
+        // Addon configuration
+        modelBuilder.Entity<Addon>(entity =>
+        {
+            entity.HasOne(d => d.AddonGroup)
+                  .WithMany(p => p.Addons)
+                  .HasForeignKey(d => d.AddonGroupId)
+                  .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // ProductAddonGroup configuration
+        modelBuilder.Entity<ProductAddonGroup>(entity =>
+        {
+            entity.HasOne(d => d.Product)
+                  .WithMany(p => p.AddonGroups)
+                  .HasForeignKey(d => d.ProductId)
+                  .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(d => d.AddonGroup)
+                  .WithMany(p => p.ProductAddonGroups)
+                  .HasForeignKey(d => d.AddonGroupId)
+                  .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasIndex(e => new { e.ProductId, e.AddonGroupId }).IsUnique();
+        });
+
+        // OrderItemAddon configuration
+        modelBuilder.Entity<OrderItemAddon>(entity =>
+        {
+            entity.HasOne(d => d.OrderItem)
+                  .WithMany(p => p.Addons)
+                  .HasForeignKey(d => d.OrderItemId)
+                  .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(d => d.Addon)
+                  .WithMany(p => p.OrderItemAddons)
+                  .HasForeignKey(d => d.AddonId)
+                  .OnDelete(DeleteBehavior.Restrict); // Não deletar addon se usado em pedido
         });
 
         // Seed data

@@ -22,6 +22,107 @@ namespace PedejaApp.Infrastructure.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("PedejaApp.Domain.Entities.Addon", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("AddonGroupId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<int>("DisplayOrder")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("ImageUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<decimal>("Price")
+                        .HasColumnType("decimal(10,2)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AddonGroupId");
+
+                    b.ToTable("Addons");
+                });
+
+            modelBuilder.Entity("PedejaApp.Domain.Entities.AddonGroup", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<int>("DisplayOrder")
+                        .HasColumnType("integer");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsRequired")
+                        .HasColumnType("boolean");
+
+                    b.Property<int?>("MaxSelections")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("MinSelections")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Name")
+                        .IsUnique();
+
+                    b.ToTable("AddonGroups");
+                });
+
             modelBuilder.Entity("PedejaApp.Domain.Entities.Category", b =>
                 {
                     b.Property<int>("Id")
@@ -228,6 +329,43 @@ namespace PedejaApp.Infrastructure.Migrations
                     b.HasIndex("ProductId");
 
                     b.ToTable("OrderItems");
+                });
+
+            modelBuilder.Entity("PedejaApp.Domain.Entities.OrderItemAddon", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("AddonId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("AddonName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<int>("OrderItemId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("integer");
+
+                    b.Property<decimal>("Subtotal")
+                        .HasColumnType("decimal(10,2)");
+
+                    b.Property<decimal>("UnitPrice")
+                        .HasColumnType("decimal(10,2)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AddonId");
+
+                    b.HasIndex("OrderItemId");
+
+                    b.ToTable("OrderItemAddons");
                 });
 
             modelBuilder.Entity("PedejaApp.Domain.Entities.OrderRejection", b =>
@@ -534,6 +672,42 @@ namespace PedejaApp.Infrastructure.Migrations
                         });
                 });
 
+            modelBuilder.Entity("PedejaApp.Domain.Entities.ProductAddonGroup", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("AddonGroupId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("DisplayOrder")
+                        .HasColumnType("integer");
+
+                    b.Property<bool>("IsRequired")
+                        .HasColumnType("boolean");
+
+                    b.Property<int?>("MaxSelectionsOverride")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("MinSelectionsOverride")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("ProductId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AddonGroupId");
+
+                    b.HasIndex("ProductId", "AddonGroupId")
+                        .IsUnique();
+
+                    b.ToTable("ProductAddonGroups");
+                });
+
             modelBuilder.Entity("PedejaApp.Domain.Entities.ProductImage", b =>
                 {
                     b.Property<int>("Id")
@@ -621,6 +795,17 @@ namespace PedejaApp.Infrastructure.Migrations
                     b.ToTable("ProductImages");
                 });
 
+            modelBuilder.Entity("PedejaApp.Domain.Entities.Addon", b =>
+                {
+                    b.HasOne("PedejaApp.Domain.Entities.AddonGroup", "AddonGroup")
+                        .WithMany("Addons")
+                        .HasForeignKey("AddonGroupId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("AddonGroup");
+                });
+
             modelBuilder.Entity("PedejaApp.Domain.Entities.OrderItem", b =>
                 {
                     b.HasOne("PedejaApp.Domain.Entities.Order", "Order")
@@ -638,6 +823,25 @@ namespace PedejaApp.Infrastructure.Migrations
                     b.Navigation("Order");
 
                     b.Navigation("Product");
+                });
+
+            modelBuilder.Entity("PedejaApp.Domain.Entities.OrderItemAddon", b =>
+                {
+                    b.HasOne("PedejaApp.Domain.Entities.Addon", "Addon")
+                        .WithMany("OrderItemAddons")
+                        .HasForeignKey("AddonId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("PedejaApp.Domain.Entities.OrderItem", "OrderItem")
+                        .WithMany("Addons")
+                        .HasForeignKey("OrderItemId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Addon");
+
+                    b.Navigation("OrderItem");
                 });
 
             modelBuilder.Entity("PedejaApp.Domain.Entities.OrderRejection", b =>
@@ -695,6 +899,25 @@ namespace PedejaApp.Infrastructure.Migrations
                     b.Navigation("Category");
                 });
 
+            modelBuilder.Entity("PedejaApp.Domain.Entities.ProductAddonGroup", b =>
+                {
+                    b.HasOne("PedejaApp.Domain.Entities.AddonGroup", "AddonGroup")
+                        .WithMany("ProductAddonGroups")
+                        .HasForeignKey("AddonGroupId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("PedejaApp.Domain.Entities.Product", "Product")
+                        .WithMany("AddonGroups")
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("AddonGroup");
+
+                    b.Navigation("Product");
+                });
+
             modelBuilder.Entity("PedejaApp.Domain.Entities.ProductImage", b =>
                 {
                     b.HasOne("PedejaApp.Domain.Entities.Product", "Product")
@@ -704,6 +927,18 @@ namespace PedejaApp.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("Product");
+                });
+
+            modelBuilder.Entity("PedejaApp.Domain.Entities.Addon", b =>
+                {
+                    b.Navigation("OrderItemAddons");
+                });
+
+            modelBuilder.Entity("PedejaApp.Domain.Entities.AddonGroup", b =>
+                {
+                    b.Navigation("Addons");
+
+                    b.Navigation("ProductAddonGroups");
                 });
 
             modelBuilder.Entity("PedejaApp.Domain.Entities.Category", b =>
@@ -722,6 +957,11 @@ namespace PedejaApp.Infrastructure.Migrations
                     b.Navigation("StatusHistory");
                 });
 
+            modelBuilder.Entity("PedejaApp.Domain.Entities.OrderItem", b =>
+                {
+                    b.Navigation("Addons");
+                });
+
             modelBuilder.Entity("PedejaApp.Domain.Entities.Payment", b =>
                 {
                     b.Navigation("Refunds");
@@ -729,6 +969,8 @@ namespace PedejaApp.Infrastructure.Migrations
 
             modelBuilder.Entity("PedejaApp.Domain.Entities.Product", b =>
                 {
+                    b.Navigation("AddonGroups");
+
                     b.Navigation("Images");
                 });
 #pragma warning restore 612, 618

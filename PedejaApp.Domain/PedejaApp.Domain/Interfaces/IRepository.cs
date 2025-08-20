@@ -12,12 +12,3 @@ public interface IRepository<T> where T : BaseEntity
     Task<bool> ExistsAsync(int id);
 }
 
-public interface ICategoryRepository : IRepository<Category>
-{
-    Task<IEnumerable<Category>> GetActiveCategoriesAsync();
-    Task<IEnumerable<Category>> GetCategoriesOrderedAsync();
-    Task<bool> HasProductsAsync(int categoryId);
-    Task<int> GetNextDisplayOrderAsync();
-    Task UpdateDisplayOrdersAsync(Dictionary<int, int> categoryDisplayOrders);
-    Task<bool> IsNameUniqueAsync(string name, int? excludeId = null);
-}
