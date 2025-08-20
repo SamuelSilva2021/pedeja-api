@@ -59,7 +59,10 @@ builder.Services.AddScoped<IProductService, SimpleProductService>();
 builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 builder.Services.AddScoped<IProductRepository, ProductRepository>();
 builder.Services.AddScoped<IOrderService, OrderService>();
-
+builder.Services.AddScoped<IAddonGroupService, AddonGroupService>();
+builder.Services.AddScoped<IAddonRepository, AddonRepository>();
+builder.Services.AddScoped<IAddonGroupRepository, AddonGroupRepository>();
+builder.Services.AddScoped<IAddonService, AddonService>();
 
 // Configure Entity Framework
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
