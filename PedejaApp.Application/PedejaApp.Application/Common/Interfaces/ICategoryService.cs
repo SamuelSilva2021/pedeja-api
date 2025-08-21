@@ -1,15 +1,18 @@
+using PedejaApp.Application.Features.Categories;
 using PedejaApp.Domain.Entities;
+using PedejaApp.Web.Models.DTOs;
 
 namespace PedejaApp.Application.Common.Interfaces;
 
 public interface ICategoryService
 {
-    Task<IEnumerable<Category>> GetAllCategoriesAsync();
-    Task<IEnumerable<Category>> GetActiveCategoriesAsync();
-    Task<Category?> GetCategoryByIdAsync(int id);
-    Task<Category> CreateCategoryAsync(Category category);
-    Task<Category?> UpdateCategoryAsync(int id, Category category);
-    Task<bool> DeleteCategoryAsync(int id);
+    Task<IEnumerable<CategoryDto>> GetAllCategoriesAsync();
+    Task<IEnumerable<CategoryDto>> GetActiveCategoriesAsync();
+    Task<CategoryDto?> GetCategoryByIdAsync(int id);
+    Task<CategoryDto> CreateCategoryAsync(CreateCategoryDto createDto);
+    Task<CategoryDto> UpdateCategoryAsync(int id, UpdateCategoryDto updateDto);
+    Task<ResultDto<bool>> DeleteCategoryAsync(int id);
+    Task<bool> ReorderCategoriesAsync(ReorderCategoriesDto reorderDto);
     Task<bool> CanDeleteCategoryAsync(int id);
-    Task<bool> UpdateDisplayOrdersAsync(Dictionary<int, int> categoryDisplayOrders);
+    Task<CategoryDto> ToggleCategoryActiveAsync(int id);
 }

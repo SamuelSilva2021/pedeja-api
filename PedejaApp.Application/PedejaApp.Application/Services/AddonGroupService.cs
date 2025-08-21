@@ -85,7 +85,7 @@ public class AddonGroupService : IAddonGroupService
         if (!await CanDeleteAddonGroupAsync(id))
             throw new InvalidOperationException("Não é possível excluir este grupo pois ele possui adicionais ou está associado a produtos");
 
-        await _addonGroupRepository.DeleteAsync(id);
+        await _addonGroupRepository.DeleteVirtualAsync(id);
     }
 
     public async Task<AddonGroup> ToggleAddonGroupStatusAsync(int id)

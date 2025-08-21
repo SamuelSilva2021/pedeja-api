@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using PedejaApp.Application.Common.Interfaces;
 using PedejaApp.Application.Features.Categories;
+using PedejaApp.Web.Extensions;
 using System.Linq;
 
 namespace PedejaApp.Web.Controllers;
@@ -163,37 +165,15 @@ public class CategoriesController : ControllerBase
     }
 
     /// <summary>
-    /// Excluir categoria (soft delete)
+    /// Excluir categoria por ID
     /// </summary>
+    /// <param name="id"></param>
+    /// <returns></returns>
     [HttpDelete("{id}")]
     public async Task<ActionResult> DeleteCategory(int id)
     {
-        try
-        {
-            // Verificar se a categoria pode ser excluída
-            if (!await _categoryService.CanDeleteCategoryAsync(id))
-            {
-                return BadRequest(new { error = "Não é possível excluir categoria que possui produtos associados" });
-            }
-
-            var result = await _categoryService.DeleteCategoryAsync(id);
-            if (!result)
-            {
-                return NotFound(new { error = "Categoria não encontrada" });
-            }
-
-            return Ok(new { message = "Categoria excluída com sucesso" });
-        }
-        catch (InvalidOperationException ex)
-        {
-            _logger.LogWarning(ex, "Erro de validação ao excluir categoria {CategoryId}", id);
-            return BadRequest(new { error = ex.Message });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Erro ao excluir categoria {CategoryId}", id);
-            return StatusCode(500, new { error = "Erro interno do servidor" });
-        }
+        var result = await _categoryService.DeleteCategoryAsync(id);
+        return this.ToActionResult(result, "Categoria excluída com sucesso");
     }
 
     /// <summary>

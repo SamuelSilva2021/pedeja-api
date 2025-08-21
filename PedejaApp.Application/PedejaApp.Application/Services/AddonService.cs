@@ -86,7 +86,7 @@ public class AddonService : IAddonService
         if (!await CanDeleteAddonAsync(id))
             throw new InvalidOperationException("Não é possível excluir este adicional pois ele está sendo usado em pedidos");
 
-        await _addonRepository.DeleteAsync(id);
+        await _addonRepository.DeleteVirtualAsync(id);
     }
 
     public async Task<Addon> ToggleAddonStatusAsync(int id)

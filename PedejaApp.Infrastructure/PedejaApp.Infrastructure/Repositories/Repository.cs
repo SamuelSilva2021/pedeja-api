@@ -41,7 +41,7 @@ public class Repository<T> : IRepository<T> where T : BaseEntity
         await _context.SaveChangesAsync();
     }
 
-    public virtual async Task DeleteAsync(int id)
+    public virtual async Task DeleteVirtualAsync(int id)
     {
         var entity = await GetByIdAsync(id);
         if (entity != null)
@@ -55,5 +55,11 @@ public class Repository<T> : IRepository<T> where T : BaseEntity
     public virtual async Task<bool> ExistsAsync(int id)
     {
         return await _dbSet.AnyAsync(x => x.Id == id && !x.IsDeleted);
+    }
+
+    public async Task DeleteAsync(T Entity)
+    {
+        _dbSet.Remove(Entity);
+        await _context.SaveChangesAsync();
     }
 }

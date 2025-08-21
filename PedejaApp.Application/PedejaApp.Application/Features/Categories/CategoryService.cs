@@ -2,21 +2,10 @@ using PedejaApp.Domain.Entities;
 using PedejaApp.Domain.Interfaces;
 using PedejaApp.Application.Features.Categories;
 using Microsoft.Extensions.Logging;
+using PedejaApp.Application.Common.Interfaces;
+using PedejaApp.Web.Models.DTOs;
 
 namespace PedejaApp.Application.Features.Categories;
-
-public interface ICategoryService
-{
-    Task<IEnumerable<CategoryDto>> GetAllCategoriesAsync();
-    Task<IEnumerable<CategoryDto>> GetActiveCategoriesAsync();
-    Task<CategoryDto?> GetCategoryByIdAsync(int id);
-    Task<CategoryDto> CreateCategoryAsync(CreateCategoryDto createDto);
-    Task<CategoryDto> UpdateCategoryAsync(int id, UpdateCategoryDto updateDto);
-    Task<bool> DeleteCategoryAsync(int id);
-    Task<bool> ReorderCategoriesAsync(ReorderCategoriesDto reorderDto);
-    Task<bool> CanDeleteCategoryAsync(int id);
-    Task<CategoryDto> ToggleCategoryActiveAsync(int id);
-}
 
 public class CategoryService : ICategoryService
 {
@@ -112,18 +101,24 @@ public class CategoryService : ICategoryService
         return result;
     }
 
-    public async Task<bool> DeleteCategoryAsync(int id)
+    public async Task<ResultDto<bool>> DeleteCategoryAsync(int id)
     {
-        if (!await CanDeleteCategoryAsync(id))
+        try
         {
-            throw new InvalidOperationException("Não é possível excluir categoria que possui produtos associados");
-        }
+            if (!await CanDeleteCategoryAsync(id))
+            {
+                throw new InvalidOperationException("Não é possível excluir categoria que possui produtos associados");
+            }
 
-        await _categoryRepository.DeleteAsync(id);
-        
-        _logger.LogInformation("Categoria excluída: ID {CategoryId}", id);
-        
-        return true;
+            var categoryEntity = await _categoryRepository.GetByIdAsync(id);
+            await _categoryRepository.DeleteAsync(categoryEntity);
+
+            return ResultDto<bool>.Success(true);
+        }
+        catch (Exception ex)
+        {
+            return ResultDto<bool>.Fail($"Erro ao excluir categoria: {ex.Message}");
+        }
     }
 
     public async Task<bool> ReorderCategoriesAsync(ReorderCategoriesDto reorderDto)

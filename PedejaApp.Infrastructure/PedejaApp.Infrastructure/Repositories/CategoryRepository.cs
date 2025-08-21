@@ -60,7 +60,8 @@ public class CategoryRepository : Repository<Category>, ICategoryRepository
 
     public async Task<bool> IsNameUniqueAsync(string name, int? excludeId = null)
     {
-        var query = _dbSet.Where(x => !x.IsDeleted && x.Name.ToLower() == name.ToLower());
+        // Since categories are physically deleted, we don't need to check IsDeleted
+        var query = _dbSet.Where(x => x.Name.ToLower() == name.ToLower());
         
         if (excludeId.HasValue)
         {

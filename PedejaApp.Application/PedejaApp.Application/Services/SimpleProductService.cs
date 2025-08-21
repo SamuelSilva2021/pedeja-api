@@ -58,7 +58,7 @@ namespace PedejaApp.Application.Services
 
         public async Task DeleteProductAsync(int id)
         {
-            await _productRepository.DeleteAsync(id);
+            await _productRepository.DeleteVirtualAsync(id);
         }
 
         public async Task<IEnumerable<Product>> GetProductsForMenuAsync()
