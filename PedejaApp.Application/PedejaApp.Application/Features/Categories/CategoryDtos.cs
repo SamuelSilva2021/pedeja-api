@@ -31,6 +31,8 @@ public class UpdateCategoryDto
     [StringLength(500, ErrorMessage = "Descrição deve ter no máximo 500 caracteres")]
     public string? Description { get; set; }
 
+    public int DisplayOrder { get; set; }
+
     public bool IsActive { get; set; } = true;
 }
 

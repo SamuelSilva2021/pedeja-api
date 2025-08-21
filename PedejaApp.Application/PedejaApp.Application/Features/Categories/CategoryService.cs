@@ -15,6 +15,7 @@ public interface ICategoryService
     Task<bool> DeleteCategoryAsync(int id);
     Task<bool> ReorderCategoriesAsync(ReorderCategoriesDto reorderDto);
     Task<bool> CanDeleteCategoryAsync(int id);
+    Task<CategoryDto> ToggleCategoryActiveAsync(int id);
 }
 
 public class CategoryService : ICategoryService
@@ -74,11 +75,15 @@ public class CategoryService : ICategoryService
 
     public async Task<CategoryDto> UpdateCategoryAsync(int id, UpdateCategoryDto updateDto)
     {
+        _logger.LogInformation("UpdateCategoryAsync called - ID: {Id}, UpdateDto: {@UpdateDto}", id, updateDto);
+        
         var category = await _categoryRepository.GetByIdAsync(id);
         if (category == null)
         {
             throw new InvalidOperationException($"Categoria com ID {id} não encontrada");
         }
+
+        _logger.LogInformation("Category before update - DisplayOrder: {DisplayOrder}", category.DisplayOrder);
 
         // Validar nome único (excluindo a categoria atual)
         if (await _categoryRepository.IsNameUniqueAsync(updateDto.Name, id))
@@ -88,15 +93,23 @@ public class CategoryService : ICategoryService
 
         category.Name = updateDto.Name;
         category.Description = updateDto.Description;
+        category.DisplayOrder = updateDto.DisplayOrder;
         category.IsActive = updateDto.IsActive;
         category.UpdatedAt = DateTime.UtcNow;
 
+        _logger.LogInformation("Category after property assignment - DisplayOrder: {DisplayOrder}", category.DisplayOrder);
+
         await _categoryRepository.UpdateAsync(category);
+
+        _logger.LogInformation("Category after repository update - DisplayOrder: {DisplayOrder}", category.DisplayOrder);
 
         _logger.LogInformation("Categoria atualizada: {CategoryName} (ID: {CategoryId})", 
             category.Name, category.Id);
 
-        return MapToDto(category);
+        var result = MapToDto(category);
+        _logger.LogInformation("Returning CategoryDto with DisplayOrder: {DisplayOrder}", result.DisplayOrder);
+
+        return result;
     }
 
     public async Task<bool> DeleteCategoryAsync(int id)
@@ -126,6 +139,25 @@ public class CategoryService : ICategoryService
     public async Task<bool> CanDeleteCategoryAsync(int id)
     {
         return !await _categoryRepository.HasProductsAsync(id);
+    }
+
+    public async Task<CategoryDto> ToggleCategoryActiveAsync(int id)
+    {
+        var category = await _categoryRepository.GetByIdAsync(id);
+        if (category == null)
+        {
+            throw new InvalidOperationException($"Categoria com ID {id} não encontrada");
+        }
+
+        category.IsActive = !category.IsActive;
+        category.UpdatedAt = DateTime.UtcNow;
+
+        await _categoryRepository.UpdateAsync(category);
+
+        _logger.LogInformation("Status da categoria alterado: {CategoryName} (ID: {CategoryId}) - Ativa: {IsActive}", 
+            category.Name, category.Id, category.IsActive);
+
+        return MapToDto(category);
     }
 
     private static CategoryDto MapToDto(Category category)

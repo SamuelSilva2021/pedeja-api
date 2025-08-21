@@ -197,6 +197,29 @@ public class CategoriesController : ControllerBase
     }
 
     /// <summary>
+    /// Alternar status ativo/inativo de uma categoria
+    /// </summary>
+    [HttpPut("{id}/toggle-active")]
+    public async Task<ActionResult<CategoryDto>> ToggleCategoryActive(int id)
+    {
+        try
+        {
+            var category = await _categoryService.ToggleCategoryActiveAsync(id);
+            return Ok(category);
+        }
+        catch (InvalidOperationException ex)
+        {
+            _logger.LogWarning(ex, "Erro de validação ao alterar status da categoria {CategoryId}", id);
+            return NotFound(new { error = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Erro ao alterar status da categoria {CategoryId}", id);
+            return StatusCode(500, new { error = "Erro interno do servidor" });
+        }
+    }
+
+    /// <summary>
     /// Reordenar categorias (drag and drop)
     /// </summary>
     [HttpPatch("reorder")]
