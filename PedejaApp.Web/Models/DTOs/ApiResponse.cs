@@ -1,4 +1,6 @@
-﻿namespace PedejaApp.Web.Models.DTOs
+﻿using System.Linq;
+
+namespace PedejaApp.Web.Models.DTOs
 {
     public class ApiResponse<T>
     {
@@ -6,6 +8,7 @@
         public T? Data { get; set; }
         public string? Message { get; set; }
         public string? Error { get; set; }
+        public string[]? Errors { get; set; }
         public DateTime Timestamp { get; set; } = DateTime.UtcNow;
 
         public static ApiResponse<T> SuccessResponse(T data, string message = "Operação realizada com sucesso")
@@ -27,6 +30,17 @@
                 Data = data
             };
         }
+
+        public static ApiResponse<T> ErrorResponse(string[] errors, T? data = default)
+        {
+            return new ApiResponse<T>
+            {
+                Success = false,
+                Errors = errors,
+                Error = errors?.FirstOrDefault(),
+                Data = data
+            };
+        }
     }
     public class ApiResponse : ApiResponse<object>
     {
@@ -39,12 +53,22 @@
             };
         }
 
-        public static new ApiResponse ErrorResponse(string error)
+        public static ApiResponse ErrorResponse(string error)
         {
             return new ApiResponse
             {
                 Success = false,
                 Error = error
+            };
+        }
+
+        public static ApiResponse ErrorResponse(string[] errors)
+        {
+            return new ApiResponse
+            {
+                Success = false,
+                Errors = errors,
+                Error = errors?.FirstOrDefault()
             };
         }
     }
