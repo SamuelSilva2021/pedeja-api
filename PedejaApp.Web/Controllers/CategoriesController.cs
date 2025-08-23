@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using PedejaApp.Application.Common.Interfaces;
 using PedejaApp.Application.Features.Categories;
 using PedejaApp.Web.Extensions;
+using PedejaApp.Web.Models.DTOs;
 using System.Linq;
 
 namespace PedejaApp.Web.Controllers;
@@ -170,10 +171,14 @@ public class CategoriesController : ControllerBase
     /// <param name="id"></param>
     /// <returns></returns>
     [HttpDelete("{id}")]
-    public async Task<ActionResult> DeleteCategory(int id)
+    public async Task<ApiResponse> DeleteCategory(int id)
     {
         var result = await _categoryService.DeleteCategoryAsync(id);
-        return this.ToActionResult(result, "Categoria excluída com sucesso");
+
+        if (result.IsSuccess)
+            return ApiResponse.SuccessResponse($"Categoria {id} excluída com sucesso");
+        else
+            return ApiResponse.ErrorResponse($"Erro ao excluir categoria {id}");
     }
 
     /// <summary>
