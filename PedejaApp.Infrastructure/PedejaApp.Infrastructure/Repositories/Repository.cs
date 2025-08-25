@@ -17,10 +17,10 @@ public class Repository<T> : IRepository<T> where T : BaseEntity
     }
 
     public virtual async Task<IEnumerable<T>> GetAllAsync() => 
-        await _dbSet.Where(x => !x.IsDeleted).ToListAsync();
+        await _dbSet.ToListAsync();
 
     public virtual async Task<T?> GetByIdAsync(int id) => 
-        await _dbSet.FirstOrDefaultAsync(x => x.Id == id && !x.IsDeleted);
+        await _dbSet.FirstOrDefaultAsync(x => x.Id == id);
 
     public virtual async Task<T> AddAsync(T entity)
     {
@@ -46,15 +46,14 @@ public class Repository<T> : IRepository<T> where T : BaseEntity
         var entity = await GetByIdAsync(id);
         if (entity != null)
         {
-            entity.IsDeleted = true;
-            entity.UpdatedAt = DateTime.UtcNow;
-            await UpdateAsync(entity);
+            _dbSet.Remove(entity);
+            await _context.SaveChangesAsync();
         }
     }
 
     public virtual async Task<bool> ExistsAsync(int id)
     {
-        return await _dbSet.AnyAsync(x => x.Id == id && !x.IsDeleted);
+        return await _dbSet.AnyAsync(x => x.Id == id);
     }
 
     public async Task DeleteAsync(T Entity)

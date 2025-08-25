@@ -5,9 +5,11 @@ using PedejaApp.Application.Features.Categories;
 using PedejaApp.Application.Services;
 using PedejaApp.Application.Services.Interfaces;
 using PedejaApp.Domain.Interfaces;
+using PedejaApp.Infrastructure.Configurations;
 using PedejaApp.Infrastructure.Data;
 using PedejaApp.Infrastructure.Repositories;
 using PedejaApp.Infrastructure.Services;
+using PedejaApp.Web.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -19,6 +21,9 @@ builder.Services.AddControllers()
         options.JsonSerializerOptions.DictionaryKeyPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
     });
 builder.Services.AddEndpointsApiExplorer();
+
+builder.Services.AddScrutorServices();
+
 builder.Services.AddSwaggerGen();
 
 // Configure CORS
@@ -52,19 +57,23 @@ builder.Services.AddCors(options =>
 
 // Register application services
 builder.Services.AddHttpContextAccessor();
-builder.Services.AddScoped<IFileStorageService, LocalFileStorageService>();
-builder.Services.AddScoped<IImageProcessingService, ImageProcessingService>();
-builder.Services.AddScoped<ICategoryService, CategoryService>();
-builder.Services.AddScoped<IProductService, SimpleProductService>();
-builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
-builder.Services.AddScoped<IProductRepository, ProductRepository>();
-builder.Services.AddScoped<IOrderService, OrderService>();
-builder.Services.AddScoped<IAddonGroupService, AddonGroupService>();
-builder.Services.AddScoped<IAddonRepository, AddonRepository>();
-builder.Services.AddScoped<IAddonGroupRepository, AddonGroupRepository>();
-builder.Services.AddScoped<IAddonService, AddonService>();
-builder.Services.AddScoped<IProductAddonGroupService, ProductAddonGroupService>();
-builder.Services.AddScoped<IProductAddonGroupRepository, ProductAddonGroupRepository>();
+builder.Services.AddHttpClient();
+//builder.Services.AddScoped<IFileStorageService, LocalFileStorageService>();
+//builder.Services.AddScoped<IImageProcessingService, ImageProcessingService>();
+//builder.Services.AddScoped<ICategoryService, CategoryService>();
+//builder.Services.AddScoped<IProductService, SimpleProductService>();
+//builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
+//builder.Services.AddScoped<IProductRepository, ProductRepository>();
+//builder.Services.AddScoped<IOrderService, OrderService>();
+//builder.Services.AddScoped<IAddonGroupService, AddonGroupService>();
+//builder.Services.AddScoped<IAddonRepository, AddonRepository>();
+//builder.Services.AddScoped<IAddonGroupRepository, AddonGroupRepository>();
+//builder.Services.AddScoped<IAddonService, AddonService>();
+//builder.Services.AddScoped<IProductAddonGroupService, ProductAddonGroupService>();
+//builder.Services.AddScoped<IProductAddonGroupRepository, ProductAddonGroupRepository>();
+
+// Register additional application services
+builder.Services.AddApplicationServices();
 
 // Configure Entity Framework
 builder.Services.AddDbContext<ApplicationDbContext>(options =>

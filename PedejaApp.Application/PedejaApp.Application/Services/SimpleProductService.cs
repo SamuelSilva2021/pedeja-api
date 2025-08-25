@@ -2,6 +2,8 @@ using PedejaApp.Application.Services.Interfaces;
 using PedejaApp.Domain.Entities;
 using PedejaApp.Domain.Interfaces;
 using PedejaApp.Application.Models;
+using PedejaApp.Domain.DTOs;
+using WebDTOs = PedejaApp.Web.Models.DTOs;
 
 namespace PedejaApp.Application.Services
 {
@@ -123,10 +125,10 @@ namespace PedejaApp.Application.Services
         public async Task<bool> CanDeleteCategoryAsync(int categoryId)
         {
             var products = await _productRepository.GetProductsByCategoryAsync(categoryId);
-            return !products.Any(p => p.IsActive && !p.IsDeleted);
+            return !products.Any(p => p.IsActive);
         }
 
-        public async Task<Product> CreateProductFromDtoAsync(CreateProductRequest request)
+        public async Task<Product> CreateProductFromDtoAsync(CreateProductRequestDto request)
         {
             var product = new Product
             {
@@ -144,7 +146,7 @@ namespace PedejaApp.Application.Services
             return await CreateProductAsync(product);
         }
 
-        public async Task<Product> UpdateProductFromDtoAsync(int id, UpdateProductRequest request)
+        public async Task<Product> UpdateProductFromDtoAsync(int id, WebDTOs.UpdateProductRequest request)
         {
             var existingProduct = await _productRepository.GetByIdAsync(id);
             if (existingProduct == null)
@@ -254,14 +256,12 @@ namespace PedejaApp.Application.Services
 
         public async Task<IEnumerable<object>> GetProductPriceHistoryAsync(int productId)
         {
-            // TODO: Implement after migration is created
             await Task.CompletedTask;
             return new List<object>();
         }
 
         public async Task LogProductActivityAsync(int productId, string action, string? previousValue, string? newValue, string? userId = null)
         {
-            // TODO: Implement after migration is created
             await Task.CompletedTask;
         }
     }

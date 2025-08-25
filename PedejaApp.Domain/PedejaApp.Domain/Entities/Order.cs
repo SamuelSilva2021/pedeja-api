@@ -3,11 +3,8 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace PedejaApp.Domain.Entities;
 
-public class Order
+public class Order : BaseEntity
 {
-    [Key]
-    public int Id { get; set; }
-
     [Required]
     [MaxLength(100)]
     public string CustomerName { get; set; } = string.Empty;
@@ -33,10 +30,6 @@ public class Order
     public decimal Total { get; set; }
 
     public OrderStatus Status { get; set; } = OrderStatus.Pending;
-
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-
-    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
     [MaxLength(1000)]
     public string? Notes { get; set; }

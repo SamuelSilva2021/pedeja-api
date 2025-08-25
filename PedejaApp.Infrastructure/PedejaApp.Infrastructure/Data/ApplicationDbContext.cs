@@ -502,7 +502,6 @@ public class ApplicationDbContext : DbContext
             // Indexes for performance
             entity.HasIndex(e => e.ProductId);
             entity.HasIndex(e => e.IsPrimary);
-            entity.HasIndex(e => e.IsDeleted);
             entity.HasIndex(e => e.UploadDate);
         });
 

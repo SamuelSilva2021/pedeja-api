@@ -14,8 +14,8 @@ public class AddonGroupRepository : Repository<AddonGroup>, IAddonGroupRepositor
     public async Task<IEnumerable<AddonGroup>> GetActiveAddonGroupsAsync()
     {
         return await _dbSet
-            .Where(ag => ag.IsActive && !ag.IsDeleted)
-            .Include(ag => ag.Addons.Where(a => a.IsActive && !a.IsDeleted))
+            .Where(ag => ag.IsActive)
+            .Include(ag => ag.Addons.Where(a => a.IsActive))
             .OrderBy(ag => ag.DisplayOrder)
             .ThenBy(ag => ag.Name)
             .ToListAsync();
@@ -24,8 +24,8 @@ public class AddonGroupRepository : Repository<AddonGroup>, IAddonGroupRepositor
     public async Task<AddonGroup?> GetWithAddonsAsync(int id)
     {
         return await _dbSet
-            .Where(ag => ag.Id == id && !ag.IsDeleted)
-            .Include(ag => ag.Addons.Where(a => !a.IsDeleted))
+            .Where(ag => ag.Id == id)
+            .Include(ag => ag.Addons.Where(a => a.IsActive))
             .FirstOrDefaultAsync();
     }
 
@@ -34,8 +34,8 @@ public class AddonGroupRepository : Repository<AddonGroup>, IAddonGroupRepositor
         return await _context.ProductAddonGroups
             .Where(pag => pag.ProductId == productId)
             .Include(pag => pag.AddonGroup)
-                .ThenInclude(ag => ag.Addons.Where(a => a.IsActive && !a.IsDeleted))
-            .Where(pag => pag.AddonGroup.IsActive && !pag.AddonGroup.IsDeleted)
+                .ThenInclude(ag => ag.Addons)
+            .Where(pag => pag.AddonGroup.IsActive)
             .OrderBy(pag => pag.DisplayOrder)
             .Select(pag => pag.AddonGroup)
             .ToListAsync();
@@ -43,7 +43,7 @@ public class AddonGroupRepository : Repository<AddonGroup>, IAddonGroupRepositor
 
     public async Task<bool> IsNameUniqueAsync(string name, int? excludeId = null)
     {
-        var query = _dbSet.Where(ag => ag.Name.ToLower() == name.ToLower() && !ag.IsDeleted);
+        var query = _dbSet.Where(ag => ag.Name.ToLower() == name.ToLower() && ag.IsActive);
         
         if (excludeId.HasValue)
             query = query.Where(ag => ag.Id != excludeId.Value);
@@ -54,7 +54,6 @@ public class AddonGroupRepository : Repository<AddonGroup>, IAddonGroupRepositor
     public async Task<int> GetNextDisplayOrderAsync()
     {
         var maxOrder = await _dbSet
-            .Where(ag => !ag.IsDeleted)
             .MaxAsync(ag => (int?)ag.DisplayOrder);
             
         return (maxOrder ?? 0) + 1;
@@ -65,7 +64,7 @@ public class AddonGroupRepository : Repository<AddonGroup>, IAddonGroupRepositor
         foreach (var kvp in groupDisplayOrders)
         {
             var group = await _dbSet.FindAsync(kvp.Key);
-            if (group != null && !group.IsDeleted)
+            if (group != null)
             {
                 group.DisplayOrder = kvp.Value;
                 group.UpdatedAt = DateTime.UtcNow;
@@ -77,6 +76,6 @@ public class AddonGroupRepository : Repository<AddonGroup>, IAddonGroupRepositor
     public async Task<bool> HasAddonsAsync(int addonGroupId)
     {
         return await _context.Addons
-            .AnyAsync(a => a.AddonGroupId == addonGroupId && !a.IsDeleted);
+            .AnyAsync(a => a.AddonGroupId == addonGroupId);
     }
 }

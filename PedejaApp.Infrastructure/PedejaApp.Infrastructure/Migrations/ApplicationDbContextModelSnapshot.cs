@@ -50,9 +50,6 @@ namespace PedejaApp.Infrastructure.Migrations
                     b.Property<bool>("IsActive")
                         .HasColumnType("boolean");
 
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("boolean");
-
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -90,9 +87,6 @@ namespace PedejaApp.Infrastructure.Migrations
                         .HasColumnType("integer");
 
                     b.Property<bool>("IsActive")
-                        .HasColumnType("boolean");
-
-                    b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean");
 
                     b.Property<bool>("IsRequired")
@@ -144,9 +138,6 @@ namespace PedejaApp.Infrastructure.Migrations
                     b.Property<bool>("IsActive")
                         .HasColumnType("boolean");
 
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("boolean");
-
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -174,7 +165,6 @@ namespace PedejaApp.Infrastructure.Migrations
                             Description = "Pratos principais do cardápio",
                             DisplayOrder = 1,
                             IsActive = true,
-                            IsDeleted = false,
                             Name = "Pratos Principais",
                             UpdatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)
                         },
@@ -185,7 +175,6 @@ namespace PedejaApp.Infrastructure.Migrations
                             Description = "Bebidas e refrescos",
                             DisplayOrder = 2,
                             IsActive = true,
-                            IsDeleted = false,
                             Name = "Bebidas",
                             UpdatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)
                         },
@@ -196,7 +185,6 @@ namespace PedejaApp.Infrastructure.Migrations
                             Description = "Doces e sobremesas",
                             DisplayOrder = 3,
                             IsActive = true,
-                            IsDeleted = false,
                             Name = "Sobremesas",
                             UpdatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)
                         },
@@ -207,7 +195,6 @@ namespace PedejaApp.Infrastructure.Migrations
                             Description = "Aperitivos e entradas",
                             DisplayOrder = 4,
                             IsActive = true,
-                            IsDeleted = false,
                             Name = "Entradas",
                             UpdatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)
                         });
@@ -566,9 +553,6 @@ namespace PedejaApp.Infrastructure.Migrations
                     b.Property<bool>("IsActive")
                         .HasColumnType("boolean");
 
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("boolean");
-
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -600,7 +584,6 @@ namespace PedejaApp.Infrastructure.Migrations
                             Description = "Hambúrguer artesanal com carne bovina, queijo, alface, tomate e molho especial",
                             DisplayOrder = 1,
                             IsActive = true,
-                            IsDeleted = false,
                             Name = "Hambúrguer Clássico",
                             Price = 25.90m,
                             UpdatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)
@@ -613,7 +596,6 @@ namespace PedejaApp.Infrastructure.Migrations
                             Description = "Pizza tradicional com molho de tomate, mussarela e manjericão fresco",
                             DisplayOrder = 2,
                             IsActive = true,
-                            IsDeleted = false,
                             Name = "Pizza Margherita",
                             Price = 32.50m,
                             UpdatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)
@@ -626,7 +608,6 @@ namespace PedejaApp.Infrastructure.Migrations
                             Description = "Refrigerante gelado em lata de 350ml - diversos sabores",
                             DisplayOrder = 1,
                             IsActive = true,
-                            IsDeleted = false,
                             Name = "Refrigerante Lata",
                             Price = 5.50m,
                             UpdatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)
@@ -639,7 +620,6 @@ namespace PedejaApp.Infrastructure.Migrations
                             Description = "Suco natural de frutas frescas - 400ml",
                             DisplayOrder = 2,
                             IsActive = true,
-                            IsDeleted = false,
                             Name = "Suco Natural",
                             Price = 8.90m,
                             UpdatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)
@@ -652,7 +632,6 @@ namespace PedejaApp.Infrastructure.Migrations
                             Description = "Pudim caseiro de leite condensado com calda de açúcar",
                             DisplayOrder = 1,
                             IsActive = true,
-                            IsDeleted = false,
                             Name = "Pudim de Leite",
                             Price = 12.90m,
                             UpdatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)
@@ -665,7 +644,6 @@ namespace PedejaApp.Infrastructure.Migrations
                             Description = "Batatas crocantes cortadas na casa, tempero especial - serve até 3 pessoas",
                             DisplayOrder = 1,
                             IsActive = true,
-                            IsDeleted = false,
                             Name = "Porção de Batata Frita",
                             Price = 18.50m,
                             UpdatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)
@@ -742,9 +720,6 @@ namespace PedejaApp.Infrastructure.Migrations
                     b.Property<int>("Height")
                         .HasColumnType("integer");
 
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("boolean");
-
                     b.Property<bool>("IsPrimary")
                         .HasColumnType("boolean");
 
@@ -783,8 +758,6 @@ namespace PedejaApp.Infrastructure.Migrations
                         .HasColumnType("integer");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("IsDeleted");
 
                     b.HasIndex("IsPrimary");
 
