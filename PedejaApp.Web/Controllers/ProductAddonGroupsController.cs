@@ -1,73 +1,42 @@
 using Microsoft.AspNetCore.Mvc;
 using PedejaApp.Application.Services.Interfaces;
+using PedejaApp.Web.Models.DTOs;
 using PedejaApp.Domain.DTOs;
-
 namespace PedejaApp.Web.Controllers;
 
+/// <summary>
+/// Controller para gerenciamento de grupos de adicionais de produtos seguindo princípios SOLID e Clean Architecture
+/// </summary>
 [ApiController]
 [Route("api/products/{productId:int}/addon-groups")]
-public class ProductAddonGroupsController : ControllerBase
+public class ProductAddonGroupsController(
+    IProductAddonGroupService productAddonGroupService,
+    IProductAddonGroupMapper productAddonGroupMapper,
+    ILogger<ProductAddonGroupsController> logger) : ControllerBase
 {
-    private readonly IProductAddonGroupService _productAddonGroupService;
-    private readonly ILogger<ProductAddonGroupsController> _logger;
-
-    public ProductAddonGroupsController(
-        IProductAddonGroupService productAddonGroupService, 
-        ILogger<ProductAddonGroupsController> logger)
-    {
-        _productAddonGroupService = productAddonGroupService;
-        _logger = logger;
-    }
+    private readonly IProductAddonGroupService _productAddonGroupService = productAddonGroupService;
+    private readonly IProductAddonGroupMapper _productAddonGroupMapper = productAddonGroupMapper;
+    private readonly ILogger<ProductAddonGroupsController> _logger = logger;
 
     /// <summary>
     /// Obter grupos de adicionais de um produto
     /// </summary>
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<ProductAddonGroupResponseDto>>> GetProductAddonGroups(int productId)
+    public async Task<ActionResult<ApiResponse<IEnumerable<ProductAddonGroupResponseDto>>>> GetProductAddonGroups(int productId)
     {
         try
         {
             var productAddonGroups = await _productAddonGroupService.GetProductAddonGroupsAsync(productId);
+            var response = _productAddonGroupMapper.MapToDtos(productAddonGroups);
             
-            var response = productAddonGroups.Select(pag => new ProductAddonGroupResponseDto
-            {
-                Id = pag.Id,
-                ProductId = pag.ProductId,
-                AddonGroupId = pag.AddonGroupId,
-                AddonGroup = new AddonGroupResponseDto
-                {
-                    Id = pag.AddonGroup.Id,
-                    Name = pag.AddonGroup.Name,
-                    Description = pag.AddonGroup.Description,
-                    Type = pag.AddonGroup.Type,
-                    MinSelections = pag.AddonGroup.MinSelections,
-                    MaxSelections = pag.AddonGroup.MaxSelections,
-                    IsRequired = pag.AddonGroup.IsRequired,
-                    DisplayOrder = pag.AddonGroup.DisplayOrder,
-                    Addons = pag.AddonGroup.Addons.Select(a => new AddonResponseDto
-                    {
-                        Id = a.Id,
-                        Name = a.Name,
-                        Description = a.Description,
-                        Price = a.Price,
-                        ImageUrl = a.ImageUrl,
-                        DisplayOrder = a.DisplayOrder,
-                        AddonGroupId = a.AddonGroupId,
-                        IsActive = a.IsActive
-                    }).ToList()
-                },
-                DisplayOrder = pag.DisplayOrder,
-                IsRequired = pag.IsRequired,
-                MinSelectionsOverride = pag.MinSelectionsOverride,
-                MaxSelectionsOverride = pag.MaxSelectionsOverride
-            });
-
-            return Ok(response);
+            return Ok(ApiResponse<IEnumerable<ProductAddonGroupResponseDto>>.SuccessResponse(
+                response, 
+                "Grupos de adicionais obtidos com sucesso"));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Erro ao obter grupos de adicionais do produto {ProductId}", productId);
-            return StatusCode(500, "Erro interno do servidor");
+            return StatusCode(500, ApiResponse.ErrorResponse("Erro interno do servidor"));
         }
     }
 
@@ -75,21 +44,23 @@ public class ProductAddonGroupsController : ControllerBase
     /// Obter produto com todos os grupos de adicionais
     /// </summary>
     [HttpGet("~/api/products/{productId:int}/with-addons")]
-    public async Task<ActionResult<ProductWithAddonsResponseDto>> GetProductWithAddons(int productId)
+    public async Task<ActionResult<ApiResponse<ProductWithAddonsResponseDto>>> GetProductWithAddons(int productId)
     {
         try
         {
             var product = await _productAddonGroupService.GetProductWithAddonsAsync(productId);
             
             if (product == null)
-                return NotFound($"Produto com ID {productId} não encontrado");
+                return NotFound(ApiResponse.ErrorResponse($"Produto com ID {productId} não encontrado"));
 
-            return Ok(product);
+            return Ok(ApiResponse<ProductWithAddonsResponseDto>.SuccessResponse(
+                product, 
+                "Produto com adicionais obtido com sucesso"));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Erro ao obter produto {ProductId} com adicionais", productId);
-            return StatusCode(500, "Erro interno do servidor");
+            return StatusCode(500, ApiResponse.ErrorResponse("Erro interno do servidor"));
         }
     }
 
@@ -97,51 +68,38 @@ public class ProductAddonGroupsController : ControllerBase
     /// Adicionar grupo de adicionais a um produto
     /// </summary>
     [HttpPost]
-    public async Task<ActionResult<ProductAddonGroupResponseDto>> AddAddonGroupToProduct(
+    public async Task<ActionResult<ApiResponse<ProductAddonGroupResponseDto>>> AddAddonGroupToProduct(
         int productId, 
         [FromBody] AddProductAddonGroupRequestDto request)
     {
+        if (!ModelState.IsValid)
+            return BadRequest(ApiResponse.ErrorResponse("Dados inválidos", ModelState));
+
         try
         {
             var productAddonGroup = await _productAddonGroupService.AddAddonGroupToProductAsync(productId, request);
-            
-            var response = new ProductAddonGroupResponseDto
-            {
-                Id = productAddonGroup.Id,
-                ProductId = productAddonGroup.ProductId,
-                AddonGroupId = productAddonGroup.AddonGroupId,
-                AddonGroup = new AddonGroupResponseDto
-                {
-                    Id = productAddonGroup.AddonGroup.Id,
-                    Name = productAddonGroup.AddonGroup.Name,
-                    Description = productAddonGroup.AddonGroup.Description,
-                    Type = productAddonGroup.AddonGroup.Type,
-                    MinSelections = productAddonGroup.AddonGroup.MinSelections,
-                    MaxSelections = productAddonGroup.AddonGroup.MaxSelections,
-                    IsRequired = productAddonGroup.AddonGroup.IsRequired,
-                    DisplayOrder = productAddonGroup.AddonGroup.DisplayOrder
-                },
-                DisplayOrder = productAddonGroup.DisplayOrder,
-                IsRequired = productAddonGroup.IsRequired,
-                MinSelectionsOverride = productAddonGroup.MinSelectionsOverride,
-                MaxSelectionsOverride = productAddonGroup.MaxSelectionsOverride
-            };
+            var response = _productAddonGroupMapper.MapToDto(productAddonGroup);
 
-            return CreatedAtAction(nameof(GetProductAddonGroups), new { productId }, response);
+            return CreatedAtAction(
+                nameof(GetProductAddonGroups), 
+                new { productId }, 
+                ApiResponse<ProductAddonGroupResponseDto>.SuccessResponse(
+                    response, 
+                    "Grupo de adicionais adicionado com sucesso"));
         }
         catch (ArgumentException ex)
         {
-            return BadRequest(ex.Message);
+            return BadRequest(ApiResponse.ErrorResponse(ex.Message));
         }
         catch (InvalidOperationException ex)
         {
-            return Conflict(ex.Message);
+            return Conflict(ApiResponse.ErrorResponse(ex.Message));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Erro ao adicionar grupo de adicionais {AddonGroupId} ao produto {ProductId}", 
                 request.AddonGroupId, productId);
-            return StatusCode(500, "Erro interno do servidor");
+            return StatusCode(500, ApiResponse.ErrorResponse("Erro interno do servidor"));
         }
     }
 
@@ -149,49 +107,34 @@ public class ProductAddonGroupsController : ControllerBase
     /// Atualizar configuração de grupo de adicionais em um produto
     /// </summary>
     [HttpPut("{addonGroupId:int}")]
-    public async Task<ActionResult<ProductAddonGroupResponseDto>> UpdateProductAddonGroup(
+    public async Task<ActionResult<ApiResponse<ProductAddonGroupResponseDto>>> UpdateProductAddonGroup(
         int productId, 
         int addonGroupId, 
         [FromBody] UpdateProductAddonGroupRequestDto request)
     {
+        if (!ModelState.IsValid)
+            return BadRequest(ApiResponse.ErrorResponse("Dados inválidos", ModelState));
+
         try
         {
             var productAddonGroup = await _productAddonGroupService.UpdateProductAddonGroupAsync(
                 productId, addonGroupId, request);
             
-            var response = new ProductAddonGroupResponseDto
-            {
-                Id = productAddonGroup.Id,
-                ProductId = productAddonGroup.ProductId,
-                AddonGroupId = productAddonGroup.AddonGroupId,
-                AddonGroup = new AddonGroupResponseDto
-                {
-                    Id = productAddonGroup.AddonGroup.Id,
-                    Name = productAddonGroup.AddonGroup.Name,
-                    Description = productAddonGroup.AddonGroup.Description,
-                    Type = productAddonGroup.AddonGroup.Type,
-                    MinSelections = productAddonGroup.AddonGroup.MinSelections,
-                    MaxSelections = productAddonGroup.AddonGroup.MaxSelections,
-                    IsRequired = productAddonGroup.AddonGroup.IsRequired,
-                    DisplayOrder = productAddonGroup.AddonGroup.DisplayOrder
-                },
-                DisplayOrder = productAddonGroup.DisplayOrder,
-                IsRequired = productAddonGroup.IsRequired,
-                MinSelectionsOverride = productAddonGroup.MinSelectionsOverride,
-                MaxSelectionsOverride = productAddonGroup.MaxSelectionsOverride
-            };
+            var response = _productAddonGroupMapper.MapToDto(productAddonGroup);
 
-            return Ok(response);
+            return Ok(ApiResponse<ProductAddonGroupResponseDto>.SuccessResponse(
+                response, 
+                "Grupo de adicionais atualizado com sucesso"));
         }
         catch (ArgumentException ex)
         {
-            return NotFound(ex.Message);
+            return NotFound(ApiResponse.ErrorResponse(ex.Message));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Erro ao atualizar grupo de adicionais {AddonGroupId} do produto {ProductId}", 
                 addonGroupId, productId);
-            return StatusCode(500, "Erro interno do servidor");
+            return StatusCode(500, ApiResponse.ErrorResponse("Erro interno do servidor"));
         }
     }
 
@@ -199,22 +142,22 @@ public class ProductAddonGroupsController : ControllerBase
     /// Remover grupo de adicionais de um produto
     /// </summary>
     [HttpDelete("{addonGroupId:int}")]
-    public async Task<ActionResult> RemoveAddonGroupFromProduct(int productId, int addonGroupId)
+    public async Task<ActionResult<ApiResponse>> RemoveAddonGroupFromProduct(int productId, int addonGroupId)
     {
         try
         {
             await _productAddonGroupService.RemoveAddonGroupFromProductAsync(productId, addonGroupId);
-            return NoContent();
+            return Ok(ApiResponse.SuccessResponse("Grupo de adicionais removido com sucesso"));
         }
         catch (ArgumentException ex)
         {
-            return NotFound(ex.Message);
+            return NotFound(ApiResponse.ErrorResponse(ex.Message));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Erro ao remover grupo de adicionais {AddonGroupId} do produto {ProductId}", 
                 addonGroupId, productId);
-            return StatusCode(500, "Erro interno do servidor");
+            return StatusCode(500, ApiResponse.ErrorResponse("Erro interno do servidor"));
         }
     }
 
@@ -222,19 +165,22 @@ public class ProductAddonGroupsController : ControllerBase
     /// Reordenar grupos de adicionais de um produto
     /// </summary>
     [HttpPut("reorder")]
-    public async Task<ActionResult> ReorderProductAddonGroups(
+    public async Task<ActionResult<ApiResponse>> ReorderProductAddonGroups(
         int productId, 
         [FromBody] Dictionary<int, int> groupOrders)
     {
+        if (!ModelState.IsValid)
+            return BadRequest(ApiResponse.ErrorResponse("Dados inválidos", ModelState));
+
         try
         {
             await _productAddonGroupService.ReorderProductAddonGroupsAsync(productId, groupOrders);
-            return NoContent();
+            return Ok(ApiResponse.SuccessResponse("Grupos de adicionais reordenados com sucesso"));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Erro ao reordenar grupos de adicionais do produto {ProductId}", productId);
-            return StatusCode(500, "Erro interno do servidor");
+            return StatusCode(500, ApiResponse.ErrorResponse("Erro interno do servidor"));
         }
     }
 
@@ -242,46 +188,30 @@ public class ProductAddonGroupsController : ControllerBase
     /// Adicionar múltiplos grupos de adicionais a um produto
     /// </summary>
     [HttpPost("bulk")]
-    public async Task<ActionResult<IEnumerable<ProductAddonGroupResponseDto>>> BulkAddAddonGroupsToProduct(
+    public async Task<ActionResult<ApiResponse<IEnumerable<ProductAddonGroupResponseDto>>>> BulkAddAddonGroupsToProduct(
         int productId, 
         [FromBody] IEnumerable<AddProductAddonGroupRequestDto> requests)
     {
+        if (!ModelState.IsValid)
+            return BadRequest(ApiResponse.ErrorResponse("Dados inválidos", ModelState));
+
         try
         {
             var productAddonGroups = await _productAddonGroupService.BulkAddAddonGroupsToProductAsync(productId, requests);
-            
-            var response = productAddonGroups.Select(pag => new ProductAddonGroupResponseDto
-            {
-                Id = pag.Id,
-                ProductId = pag.ProductId,
-                AddonGroupId = pag.AddonGroupId,
-                AddonGroup = new AddonGroupResponseDto
-                {
-                    Id = pag.AddonGroup.Id,
-                    Name = pag.AddonGroup.Name,
-                    Description = pag.AddonGroup.Description,
-                    Type = pag.AddonGroup.Type,
-                    MinSelections = pag.AddonGroup.MinSelections,
-                    MaxSelections = pag.AddonGroup.MaxSelections,
-                    IsRequired = pag.AddonGroup.IsRequired,
-                    DisplayOrder = pag.AddonGroup.DisplayOrder
-                },
-                DisplayOrder = pag.DisplayOrder,
-                IsRequired = pag.IsRequired,
-                MinSelectionsOverride = pag.MinSelectionsOverride,
-                MaxSelectionsOverride = pag.MaxSelectionsOverride
-            });
+            var response = _productAddonGroupMapper.MapToDtos(productAddonGroups);
 
-            return Ok(response);
+            return Ok(ApiResponse<IEnumerable<ProductAddonGroupResponseDto>>.SuccessResponse(
+                response, 
+                "Grupos de adicionais adicionados em lote com sucesso"));
         }
         catch (ArgumentException ex)
         {
-            return BadRequest(ex.Message);
+            return BadRequest(ApiResponse.ErrorResponse(ex.Message));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Erro ao adicionar grupos de adicionais em lote ao produto {ProductId}", productId);
-            return StatusCode(500, "Erro interno do servidor");
+            return StatusCode(500, ApiResponse.ErrorResponse("Erro interno do servidor"));
         }
     }
 
@@ -289,19 +219,22 @@ public class ProductAddonGroupsController : ControllerBase
     /// Remover múltiplos grupos de adicionais de um produto
     /// </summary>
     [HttpDelete("bulk")]
-    public async Task<ActionResult> BulkRemoveAddonGroupsFromProduct(
+    public async Task<ActionResult<ApiResponse>> BulkRemoveAddonGroupsFromProduct(
         int productId, 
         [FromBody] IEnumerable<int> addonGroupIds)
     {
+        if (!ModelState.IsValid)
+            return BadRequest(ApiResponse.ErrorResponse("Dados inválidos", ModelState));
+
         try
         {
             await _productAddonGroupService.BulkRemoveAddonGroupsFromProductAsync(productId, addonGroupIds);
-            return NoContent();
+            return Ok(ApiResponse.SuccessResponse("Grupos de adicionais removidos em lote com sucesso"));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Erro ao remover grupos de adicionais em lote do produto {ProductId}", productId);
-            return StatusCode(500, "Erro interno do servidor");
+            return StatusCode(500, ApiResponse.ErrorResponse("Erro interno do servidor"));
         }
     }
 
@@ -309,18 +242,20 @@ public class ProductAddonGroupsController : ControllerBase
     /// Verificar se um grupo de adicionais está associado a um produto
     /// </summary>
     [HttpGet("{addonGroupId:int}/exists")]
-    public async Task<ActionResult<bool>> IsAddonGroupAssignedToProduct(int productId, int addonGroupId)
+    public async Task<ActionResult<ApiResponse<bool>>> IsAddonGroupAssignedToProduct(int productId, int addonGroupId)
     {
         try
         {
             var exists = await _productAddonGroupService.IsAddonGroupAssignedToProductAsync(productId, addonGroupId);
-            return Ok(exists);
+            return Ok(ApiResponse<bool>.SuccessResponse(
+                exists, 
+                "Verificação de associação realizada com sucesso"));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Erro ao verificar associação do grupo {AddonGroupId} ao produto {ProductId}", 
                 addonGroupId, productId);
-            return StatusCode(500, "Erro interno do servidor");
+            return StatusCode(500, ApiResponse.ErrorResponse("Erro interno do servidor"));
         }
     }
 }

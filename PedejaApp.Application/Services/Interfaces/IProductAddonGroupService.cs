@@ -1,5 +1,5 @@
 using PedejaApp.Domain.Entities;
-using PedejaApp.Web.Models.DTOs;
+using PedejaApp.Domain.DTOs;
 
 namespace PedejaApp.Application.Services.Interfaces
 {
@@ -12,10 +12,10 @@ namespace PedejaApp.Application.Services.Interfaces
         Task<ProductWithAddonsResponseDto?> GetProductWithAddonsAsync(int productId);
         
         // Adicionar grupo de adicionais a um produto
-        Task<ProductAddonGroup> AddAddonGroupToProductAsync(int productId, AddProductAddonGroupRequest request);
+        Task<ProductAddonGroup> AddAddonGroupToProductAsync(int productId, AddProductAddonGroupRequestDto request);
         
         // Atualizar configuração de grupo de adicionais em um produto
-        Task<ProductAddonGroup> UpdateProductAddonGroupAsync(int productId, int addonGroupId, UpdateProductAddonGroupRequest request);
+        Task<ProductAddonGroup> UpdateProductAddonGroupAsync(int productId, int addonGroupId, UpdateProductAddonGroupRequestDto request);
         
         // Remover grupo de adicionais de um produto
         Task RemoveAddonGroupFromProductAsync(int productId, int addonGroupId);
@@ -24,7 +24,7 @@ namespace PedejaApp.Application.Services.Interfaces
         Task ReorderProductAddonGroupsAsync(int productId, Dictionary<int, int> groupOrders);
         
         // Operações em lote
-        Task<IEnumerable<ProductAddonGroup>> BulkAddAddonGroupsToProductAsync(int productId, IEnumerable<AddProductAddonGroupRequest> requests);
+        Task<IEnumerable<ProductAddonGroup>> BulkAddAddonGroupsToProductAsync(int productId, IEnumerable<AddProductAddonGroupRequestDto> requests);
         Task BulkRemoveAddonGroupsFromProductAsync(int productId, IEnumerable<int> addonGroupIds);
         
         // Validações

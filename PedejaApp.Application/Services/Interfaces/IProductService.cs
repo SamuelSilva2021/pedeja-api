@@ -1,5 +1,7 @@
 using PedejaApp.Domain.Entities;
-using PedejaApp.Web.Models.DTOs;
+using PedejaApp.Domain.DTOs;
+using WebDTOs = PedejaApp.Web.Models.DTOs;
+using PedejaApp.Application.Models;
 
 namespace PedejaApp.Application.Services.Interfaces
 {
@@ -28,12 +30,12 @@ namespace PedejaApp.Application.Services.Interfaces
         Task<bool> CanDeleteCategoryAsync(int categoryId);
 
         // DTO-based methods for better API integration
-        Task<Product> CreateProductFromDtoAsync(CreateProductRequest request);
+        Task<Product> CreateProductFromDtoAsync(CreateProductRequestDto request);
         Task<Product> UpdateProductFromDtoAsync(int id, UpdateProductRequest request);
 
         // Story 2.3: Quick Operations
         Task UpdateProductAvailabilityAsync(int id, bool isActive);
-        Task<BulkOperationResult> BulkUpdateProductsAsync(BulkUpdateRequest request);
+        Task<PedejaApp.Domain.DTOs.BulkOperationResult> BulkUpdateProductsAsync(PedejaApp.Domain.DTOs.BulkUpdateRequest request);
         Task<IEnumerable<object>> GetProductPriceHistoryAsync(int productId);
         Task LogProductActivityAsync(int productId, string action, string? previousValue, string? newValue, string? userId = null);
     }

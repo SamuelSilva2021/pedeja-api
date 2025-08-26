@@ -1,4 +1,5 @@
 using PedejaApp.Domain.Entities;
+using PedejaApp.Domain.DTOs;
 using PedejaApp.Web.Models.DTOs;
 
 namespace PedejaApp.Application.Services.Interfaces;
@@ -23,11 +24,11 @@ public interface IProductMapper
     IEnumerable<ProductDto> MapToDtos(IEnumerable<Product> products);
     
     /// <summary>
-    /// Mapeia um CreateProductRequest para entidade Product
+    /// Mapeia um CreateProductRequestDto para entidade Product
     /// </summary>
     /// <param name="request">Request de criação</param>
     /// <returns>Entidade Product</returns>
-    Product MapToEntity(CreateProductRequest request);
+    Product MapToEntity(CreateProductRequestDto request);
     
     /// <summary>
     /// Atualiza uma entidade Product com dados do UpdateProductRequest

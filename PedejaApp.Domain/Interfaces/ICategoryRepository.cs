@@ -1,22 +1,19 @@
-using PedejaApp.Domain.Entities;
+﻿using PedejaApp.Domain.Entities;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
-namespace PedejaApp.Domain.Interfaces;
-
-/// <summary>
-/// Interface do repositório de categorias
-/// </summary>
-public interface ICategoryRepository : IRepository<Category>
+namespace PedejaApp.Domain.Interfaces
 {
-    /// <summary>
-    /// Obtém todas as categorias ativas
-    /// </summary>
-    /// <returns>Coleção de categorias ativas</returns>
-    Task<IEnumerable<Category>> GetActiveCategoriesAsync();
-    
-    /// <summary>
-    /// Verifica se uma categoria pode ser excluída
-    /// </summary>
-    /// <param name="categoryId">ID da categoria</param>
-    /// <returns>True se pode ser excluída</returns>
-    Task<bool> CanDeleteAsync(int categoryId);
+    public interface ICategoryRepository : IRepository<Category>
+    {
+        Task<IEnumerable<Category>> GetActiveCategoriesAsync();
+        Task<IEnumerable<Category>> GetCategoriesOrderedAsync();
+        Task<bool> HasProductsAsync(int categoryId);
+        Task<int> GetNextDisplayOrderAsync();
+        Task UpdateDisplayOrdersAsync(Dictionary<int, int> categoryDisplayOrders);
+        Task<bool> IsNameUniqueAsync(string name, int? excludeId = null);
+    }
 }

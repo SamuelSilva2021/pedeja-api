@@ -3,11 +3,8 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace PedejaApp.Domain.Entities;
 
-public class Order
+public class Order : BaseEntity
 {
-    [Key]
-    public int Id { get; set; }
-
     [Required]
     [MaxLength(100)]
     public string CustomerName { get; set; } = string.Empty;
@@ -34,10 +31,6 @@ public class Order
 
     public OrderStatus Status { get; set; } = OrderStatus.Pending;
 
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-
-    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
-
     [MaxLength(1000)]
     public string? Notes { get; set; }
 
@@ -55,15 +48,18 @@ public class Order
     public virtual ICollection<OrderStatusHistory> StatusHistory { get; set; } = new List<OrderStatusHistory>();
     
     public virtual OrderRejection? Rejection { get; set; }
+    
+    public virtual ICollection<Payment> Payments { get; set; } = new List<Payment>();
 }
 
 public enum OrderStatus
 {
     Pending = 0,
-    Accepted = 1,
-    Processing = 2,
+    Confirmed = 1,
+    Preparing = 2,
     Ready = 3,
-    Completed = 4,
-    Rejected = 5,
-    Cancelled = 6
+    OutForDelivery = 4,
+    Delivered = 5,
+    Cancelled = 6,
+    Rejected = 7
 }

@@ -7,15 +7,15 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "PedejaApp.Web", "PedejaApp.
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "PedejaApp.Domain", "PedejaApp.Domain", "{51A3097C-F472-4C49-AF5F-5526330EB125}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PedejaApp.Domain", "PedejaApp.Domain\PedejaApp.Domain\PedejaApp.Domain.csproj", "{38F7620F-9003-4119-AEA3-DA51E06CE43B}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PedejaApp.Domain", "PedejaApp.Domain\PedejaApp.Domain.csproj", "{38F7620F-9003-4119-AEA3-DA51E06CE43B}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "PedejaApp.Application", "PedejaApp.Application", "{B4AD3C6F-CEF9-4598-B2A0-75A08CC58CE6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PedejaApp.Application", "PedejaApp.Application\PedejaApp.Application\PedejaApp.Application.csproj", "{E46A274A-463C-49EA-B57F-F67F4BCAD678}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PedejaApp.Application", "PedejaApp.Application\PedejaApp.Application.csproj", "{E46A274A-463C-49EA-B57F-F67F4BCAD678}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "PedejaApp.Infrastructure", "PedejaApp.Infrastructure", "{46150714-FC4D-4297-B9A1-427F21E8BFBF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PedejaApp.Infrastructure", "PedejaApp.Infrastructure\PedejaApp.Infrastructure\PedejaApp.Infrastructure.csproj", "{205AB2A8-23B4-423F-BBD7-8256D11A8CCE}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PedejaApp.Infrastructure", "PedejaApp.Infrastructure\PedejaApp.Infrastructure.csproj", "{205AB2A8-23B4-423F-BBD7-8256D11A8CCE}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PedejaApp.Web", "PedejaApp.Web\PedejaApp.Web.csproj", "{1DABFA9F-FDDD-4BED-84D4-15E3E5133C53}"
 EndProject

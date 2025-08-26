@@ -1,6 +1,6 @@
 using PedejaApp.Application.Services.Interfaces;
 using PedejaApp.Domain.Entities;
-using PedejaApp.Web.Models.DTOs;
+using PedejaApp.Domain.DTOs;
 
 namespace PedejaApp.Application.Services;
 
@@ -45,9 +45,9 @@ public class ProductMapper(IUrlBuilderService urlBuilderService) : IProductMappe
     }
 
     /// <summary>
-    /// Mapeia um CreateProductRequest para entidade Product
+    /// Mapeia um CreateProductRequestDto para entidade Product
     /// </summary>
-    public Product MapToEntity(CreateProductRequest request)
+    public Product MapToEntity(CreateProductRequestDto request)
     {
         ArgumentNullException.ThrowIfNull(request);
         

@@ -24,8 +24,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\PedejaApp.Application\PedejaApp.Application\PedejaApp.Application.csproj" />
-    <ProjectReference Include="..\PedejaApp.Infrastructure\PedejaApp.Infrastructure\PedejaApp.Infrastructure.csproj" />
+    <ProjectReference Include="..\PedejaApp.Application\PedejaApp.Application.csproj" />
+    <ProjectReference Include="..\PedejaApp.Infrastructure\PedejaApp.Infrastructure.csproj" />
   </ItemGroup>
 
   <ItemGroup>

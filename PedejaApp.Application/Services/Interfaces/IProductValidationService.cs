@@ -1,4 +1,5 @@
 using PedejaApp.Application.Common.Models;
+using PedejaApp.Domain.DTOs;
 using PedejaApp.Web.Models.DTOs;
 
 namespace PedejaApp.Application.Services.Interfaces;
@@ -35,7 +36,7 @@ public interface IProductValidationService
     /// </summary>
     /// <param name="request">Request de criação</param>
     /// <returns>Lista de erros de validação</returns>
-    Task<IEnumerable<string>> ValidateCreateProductAsync(CreateProductRequest request);
+    Task<IEnumerable<string>> ValidateCreateProductAsync(CreateProductRequestDto request);
     
     /// <summary>
     /// Valida dados de atualização de produto
@@ -50,7 +51,7 @@ public interface IProductValidationService
     /// </summary>
     /// <param name="request">Request de criação</param>
     /// <returns>Resultado da validação</returns>
-    Task<ValidationResult> ValidateCreateProductRequestAsync(CreateProductRequest request);
+    Task<ValidationResult> ValidateCreateProductRequestAsync(CreateProductRequestDto request);
     
     /// <summary>
     /// Valida dados de atualização de produto com resultado estruturado

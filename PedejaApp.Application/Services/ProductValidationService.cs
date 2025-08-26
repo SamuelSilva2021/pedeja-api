@@ -1,7 +1,7 @@
 using PedejaApp.Application.Common.Models;
 using PedejaApp.Application.Services.Interfaces;
 using PedejaApp.Domain.Interfaces;
-using PedejaApp.Web.Models.DTOs;
+using PedejaApp.Domain.DTOs;
 
 namespace PedejaApp.Application.Services;
 
@@ -54,7 +54,7 @@ public class ProductValidationService(
     /// <summary>
     /// Valida dados de criação de produto
     /// </summary>
-    public async Task<IEnumerable<string>> ValidateCreateProductAsync(CreateProductRequest request)
+    public async Task<IEnumerable<string>> ValidateCreateProductAsync(CreateProductRequestDto request)
     {
         var errors = new List<string>();
 
@@ -128,7 +128,7 @@ public class ProductValidationService(
     /// <summary>
     /// Valida dados de criação de produto com resultado estruturado
     /// </summary>
-    public async Task<ValidationResult> ValidateCreateProductRequestAsync(CreateProductRequest request)
+    public async Task<ValidationResult> ValidateCreateProductRequestAsync(CreateProductRequestDto request)
     {
         var errors = await ValidateCreateProductAsync(request);
         var errorList = errors.ToList();

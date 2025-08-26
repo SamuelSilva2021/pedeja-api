@@ -1,27 +1,27 @@
 using Microsoft.AspNetCore.Mvc;
 using PedejaApp.Application.Services.Interfaces;
 using PedejaApp.Domain.DTOs;
+using PedejaApp.Web.Models.DTOs;
 
 namespace PedejaApp.Web.Controllers;
 
+/// <summary>
+/// Controller para gerenciamento de grupos de adicionais seguindo princípios SOLID e Clean Architecture
+/// </summary>
 [ApiController]
 [Route("api/[controller]")]
-public class AddonGroupsController : ControllerBase
+public class AddonGroupsController(
+    IAddonGroupService addonGroupService,
+    ILogger<AddonGroupsController> logger) : ControllerBase
 {
-    private readonly IAddonGroupService _addonGroupService;
-    private readonly ILogger<AddonGroupsController> _logger;
-
-    public AddonGroupsController(IAddonGroupService addonGroupService, ILogger<AddonGroupsController> logger)
-    {
-        _addonGroupService = addonGroupService;
-        _logger = logger;
-    }
+    private readonly IAddonGroupService _addonGroupService = addonGroupService;
+    private readonly ILogger<AddonGroupsController> _logger = logger;
 
     /// <summary>
     /// Obter todos os grupos de adicionais
     /// </summary>
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<AddonGroupResponseDto>>> GetAddonGroups([FromQuery] bool activeOnly = false)
+    public async Task<ActionResult<ApiResponse<IEnumerable<AddonGroupResponseDto>>>> GetAddonGroups([FromQuery] bool activeOnly = false)
     {
         try
         {
@@ -53,12 +53,13 @@ public class AddonGroupsController : ControllerBase
                 }).ToList()
             });
 
-            return Ok(addonGroupDtos);
+            var message = activeOnly ? "Grupos de adicionais ativos recuperados com sucesso" : "Grupos de adicionais recuperados com sucesso";
+            return Ok(ApiResponse<IEnumerable<AddonGroupResponseDto>>.SuccessResponse(addonGroupDtos, message));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Erro ao obter grupos de adicionais");
-            return StatusCode(500, "Erro interno do servidor");
+            return StatusCode(500, ApiResponse<IEnumerable<AddonGroupResponseDto>>.ErrorResponse("Erro interno do servidor"));
         }
     }
 
@@ -66,13 +67,13 @@ public class AddonGroupsController : ControllerBase
     /// Obter grupo de adicionais por ID
     /// </summary>
     [HttpGet("{id}")]
-    public async Task<ActionResult<AddonGroupResponseDto>> GetAddonGroup(int id)
+    public async Task<ActionResult<ApiResponse<AddonGroupResponseDto>>> GetAddonGroup(int id)
     {
         try
         {
             var addonGroup = await _addonGroupService.GetAddonGroupWithAddonsAsync(id);
             if (addonGroup == null)
-                return NotFound("Grupo de adicionais não encontrado");
+                return NotFound(ApiResponse<AddonGroupResponseDto>.ErrorResponse("Grupo de adicionais não encontrado"));
 
             var addonGroupDto = new AddonGroupResponseDto
             {
@@ -98,12 +99,12 @@ public class AddonGroupsController : ControllerBase
                 }).ToList()
             };
 
-            return Ok(addonGroupDto);
+            return Ok(ApiResponse<AddonGroupResponseDto>.SuccessResponse(addonGroupDto, "Grupo de adicionais recuperado com sucesso"));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Erro ao obter grupo de adicionais {AddonGroupId}", id);
-            return StatusCode(500, "Erro interno do servidor");
+            return StatusCode(500, ApiResponse<AddonGroupResponseDto>.ErrorResponse("Erro interno do servidor"));
         }
     }
 
@@ -111,12 +112,18 @@ public class AddonGroupsController : ControllerBase
     /// Criar novo grupo de adicionais
     /// </summary>
     [HttpPost]
-    public async Task<ActionResult<AddonGroupResponseDto>> CreateAddonGroup([FromBody] CreateAddonGroupRequestDto request)
+    public async Task<ActionResult<ApiResponse<AddonGroupResponseDto>>> CreateAddonGroup([FromBody] CreateAddonGroupRequestDto request)
     {
         try
         {
             if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+            {
+                var errors = ModelState.Values
+                    .SelectMany(v => v.Errors)
+                    .Select(e => e.ErrorMessage)
+                    .ToArray();
+                return BadRequest(ApiResponse<AddonGroupResponseDto>.ErrorResponse(errors));
+            }
 
             var addonGroup = await _addonGroupService.CreateAddonGroupAsync(request);
 
@@ -130,19 +137,22 @@ public class AddonGroupsController : ControllerBase
                 MaxSelections = addonGroup.MaxSelections,
                 IsRequired = addonGroup.IsRequired,
                 DisplayOrder = addonGroup.DisplayOrder,
+                IsActive = addonGroup.IsActive,
                 Addons = new List<AddonResponseDto>()
             };
 
-            return CreatedAtAction(nameof(GetAddonGroup), new { id = addonGroup.Id }, addonGroupDto);
+            return CreatedAtAction(nameof(GetAddonGroup), new { id = addonGroup.Id }, 
+                ApiResponse<AddonGroupResponseDto>.SuccessResponse(addonGroupDto, "Grupo de adicionais criado com sucesso"));
         }
         catch (ArgumentException ex)
         {
-            return BadRequest(ex.Message);
+            _logger.LogWarning(ex, "Erro de validação ao criar grupo de adicionais");
+            return BadRequest(ApiResponse<AddonGroupResponseDto>.ErrorResponse(ex.Message));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Erro ao criar grupo de adicionais");
-            return StatusCode(500, "Erro interno do servidor");
+            return StatusCode(500, ApiResponse<AddonGroupResponseDto>.ErrorResponse("Erro interno do servidor"));
         }
     }
 
@@ -150,12 +160,18 @@ public class AddonGroupsController : ControllerBase
     /// Atualizar grupo de adicionais existente
     /// </summary>
     [HttpPut("{id}")]
-    public async Task<ActionResult<AddonGroupResponseDto>> UpdateAddonGroup(int id, [FromBody] UpdateAddonGroupRequestDto request)
+    public async Task<ActionResult<ApiResponse<AddonGroupResponseDto>>> UpdateAddonGroup(int id, [FromBody] UpdateAddonGroupRequestDto request)
     {
         try
         {
             if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+            {
+                var errors = ModelState.Values
+                    .SelectMany(v => v.Errors)
+                    .Select(e => e.ErrorMessage)
+                    .ToArray();
+                return BadRequest(ApiResponse<AddonGroupResponseDto>.ErrorResponse(errors));
+            }
 
             var addonGroup = await _addonGroupService.UpdateAddonGroupAsync(id, request);
 
@@ -183,24 +199,25 @@ public class AddonGroupsController : ControllerBase
                 }).ToList()
             };
 
-            return Ok(addonGroupDto);
+            return Ok(ApiResponse<AddonGroupResponseDto>.SuccessResponse(addonGroupDto, "Grupo de adicionais atualizado com sucesso"));
         }
         catch (ArgumentException ex)
         {
-            return BadRequest(ex.Message);
+            _logger.LogWarning(ex, "Erro de validação ao atualizar grupo de adicionais {AddonGroupId}", id);
+            return BadRequest(ApiResponse<AddonGroupResponseDto>.ErrorResponse(ex.Message));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Erro ao atualizar grupo de adicionais {AddonGroupId}", id);
-            return StatusCode(500, "Erro interno do servidor");
+            return StatusCode(500, ApiResponse<AddonGroupResponseDto>.ErrorResponse("Erro interno do servidor"));
         }
     }
 
     /// <summary>
-    /// Alternar status do grupo de adicionais
+    /// Alternar status ativo/inativo do grupo de adicionais
     /// </summary>
     [HttpPatch("{id}/toggle-status")]
-    public async Task<ActionResult<AddonGroupResponseDto>> ToggleAddonGroupStatus(int id)
+    public async Task<ActionResult<ApiResponse<AddonGroupResponseDto>>> ToggleAddonGroupStatus(int id)
     {
         try
         {
@@ -230,16 +247,18 @@ public class AddonGroupsController : ControllerBase
                 }).ToList()
             };
 
-            return Ok(addonGroupDto);
+            var statusMessage = addonGroup.IsActive ? "ativado" : "desativado";
+            return Ok(ApiResponse<AddonGroupResponseDto>.SuccessResponse(addonGroupDto, $"Status do grupo de adicionais {statusMessage} com sucesso"));
         }
         catch (ArgumentException ex)
         {
-            return NotFound(ex.Message);
+            _logger.LogWarning(ex, "Grupo de adicionais não encontrado {AddonGroupId}", id);
+            return NotFound(ApiResponse<AddonGroupResponseDto>.ErrorResponse(ex.Message));
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Erro ao alterar status do grupo de adicionais {AddonGroupId}", id);
-            return StatusCode(500, "Erro interno do servidor");
+            _logger.LogError(ex, "Erro ao alternar status do grupo de adicionais {AddonGroupId}", id);
+            return StatusCode(500, ApiResponse<AddonGroupResponseDto>.ErrorResponse("Erro interno do servidor"));
         }
     }
 
@@ -247,25 +266,26 @@ public class AddonGroupsController : ControllerBase
     /// Excluir grupo de adicionais
     /// </summary>
     [HttpDelete("{id}")]
-    public async Task<ActionResult> DeleteAddonGroup(int id)
+    public async Task<ActionResult<ApiResponse<object>>> DeleteAddonGroup(int id)
     {
         try
         {
             await _addonGroupService.DeleteAddonGroupAsync(id);
-            return NoContent();
+            return Ok(ApiResponse<object>.SuccessResponse(null, "Grupo de adicionais excluído com sucesso"));
         }
         catch (ArgumentException ex)
         {
-            return NotFound(ex.Message);
+            _logger.LogWarning(ex, "Grupo de adicionais não encontrado para exclusão {AddonGroupId}", id);
+            return NotFound(ApiResponse<object>.ErrorResponse(ex.Message));
         }
         catch (InvalidOperationException ex)
         {
-            return BadRequest(ex.Message);
+            return BadRequest(ApiResponse<object>.ErrorResponse(ex.Message));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Erro ao excluir grupo de adicionais {AddonGroupId}", id);
-            return StatusCode(500, "Erro interno do servidor");
+            return StatusCode(500, ApiResponse<object>.ErrorResponse("Erro interno do servidor"));
         }
     }
 }

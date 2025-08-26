@@ -1,7 +1,7 @@
 using PedejaApp.Application.Services.Interfaces;
 using PedejaApp.Domain.Entities;
 using PedejaApp.Domain.Interfaces;
-using PedejaApp.Web.Models.DTOs;
+using PedejaApp.Domain.DTOs;
 
 namespace PedejaApp.Application.Services
 {
@@ -64,7 +64,7 @@ namespace PedejaApp.Application.Services
                 product.DisplayOrder = await _productRepository.GetNextDisplayOrderAsync(product.CategoryId);
             }
 
-            return await _productRepository.CreateAsync(product);
+            return await _productRepository.AddAsync(product);
         }
 
         public async Task<Product> UpdateProductAsync(Product product)
@@ -97,7 +97,8 @@ namespace PedejaApp.Application.Services
                     throw new InvalidOperationException("Product with this name already exists");
             }
 
-            return await _productRepository.UpdateAsync(product);
+            await _productRepository.UpdateAsync(product);
+            return product;
         }
 
         public async Task DeleteProductAsync(int id)
@@ -106,7 +107,7 @@ namespace PedejaApp.Application.Services
             if (product == null)
                 throw new ArgumentException("Product not found");
 
-            await _productRepository.DeleteAsync(id);
+            await _productRepository.DeleteAsync(product);
         }
 
         public async Task<IEnumerable<Product>> GetProductsForMenuAsync()
@@ -133,7 +134,8 @@ namespace PedejaApp.Application.Services
                 throw new ArgumentException("Product not found");
 
             product.IsActive = !product.IsActive;
-            return await _productRepository.UpdateAsync(product);
+            await _productRepository.UpdateAsync(product);
+            return product;
         }
 
         public async Task<Product> UpdateProductPriceAsync(int id, decimal newPrice)
@@ -146,7 +148,8 @@ namespace PedejaApp.Application.Services
                 throw new ArgumentException("Price must be greater than zero");
 
             product.Price = newPrice;
-            return await _productRepository.UpdateAsync(product);
+            await _productRepository.UpdateAsync(product);
+            return product;
         }
 
         public async Task<IEnumerable<Product>> SearchProductsAsync(string searchTerm)
@@ -167,8 +170,7 @@ namespace PedejaApp.Application.Services
             return !await _productRepository.HasProductsInCategoryAsync(categoryId);
         }
 
-        // DTO-based methods for better API integration
-        public async Task<Product> CreateProductFromDtoAsync(CreateProductRequest request)
+        public async Task<Product> CreateProductFromDtoAsync(CreateProductRequestDto request)
         {
             var product = new Product
             {
@@ -203,6 +205,33 @@ namespace PedejaApp.Application.Services
             existingProduct.UpdatedAt = DateTime.UtcNow;
 
             return await UpdateProductAsync(existingProduct);
+        }
+
+        public async Task<IEnumerable<object>> GetProductPriceHistoryAsync(int productId)
+        {
+            await Task.CompletedTask;
+            return new List<object>();
+        }
+
+        public async Task LogProductActivityAsync(int productId, string action, string? previousValue, string? newValue, string? userId = null)
+        {
+            await Task.CompletedTask;
+        }
+
+        public async Task<PedejaApp.Domain.DTOs.BulkOperationResult> BulkUpdateProductsAsync(PedejaApp.Domain.DTOs.BulkUpdateRequest request)
+        {
+            await Task.CompletedTask;
+            return new PedejaApp.Domain.DTOs.BulkOperationResult { SuccessCount = 0, FailureCount = 0, Errors = new List<string>() };
+        }
+
+        public async Task UpdateProductAvailabilityAsync(int id, bool isActive)
+        {
+            var product = await _productRepository.GetByIdAsync(id);
+            if (product != null)
+            {
+                product.IsActive = isActive;
+                await _productRepository.UpdateAsync(product);
+            }
         }
     }
 }
