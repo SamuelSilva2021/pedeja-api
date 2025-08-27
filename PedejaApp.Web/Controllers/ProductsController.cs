@@ -232,23 +232,19 @@ public class ProductsController(
     /// Toggle product active status
     /// </summary>
     [HttpPatch("{id}/toggle-status")]
-    public async Task<ActionResult<ApiResponse<object>>> ToggleProductStatus(int id)
+    public async Task<ActionResult<ApiResponse<ProductDto>>> ToggleProductStatus(int id)
     {
         try
         {
-            var product = await _productService.GetProductByIdAsync(id);
-            if (product == null)
-            {
-                return NotFound(ApiResponse<object>.ErrorResponse("Produto não encontrado"));
-            }
-
-            await _productService.ToggleProductStatusAsync(id);
-            return Ok(ApiResponse<object>.SuccessResponse(new { }, "Status do produto alterado com sucesso"));
+            var updatedProduct = await _productService.ToggleProductStatusAsync(id);
+            var productDto = _productMapper.MapToDto(updatedProduct);
+            
+            return Ok(ApiResponse<ProductDto>.SuccessResponse(productDto, "Status do produto alterado com sucesso"));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Erro ao alterar status do produto com ID {ProductId}", id);
-            return StatusCode(500, ApiResponse<object>.ErrorResponse("Erro interno do servidor"));
+            return StatusCode(500, ApiResponse<ProductDto>.ErrorResponse("Erro interno do servidor"));
         }
     }
 }

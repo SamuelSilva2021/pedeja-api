@@ -31,10 +31,7 @@ namespace PedejaApp.Application.Services
             return await _productRepository.GetProductsByCategoryAsync(categoryId);
         }
 
-        public async Task<Product?> GetProductByIdAsync(int id)
-        {
-            return await _productRepository.GetByIdAsync(id);
-        }
+        public async Task<Product?> GetProductByIdAsync(int id) => await _productRepository.GetByIdAsync(id);
 
         public async Task<Product> CreateProductAsync(Product product)
         {
@@ -131,7 +128,7 @@ namespace PedejaApp.Application.Services
         {
             var product = await _productRepository.GetByIdAsync(id);
             if (product == null)
-                throw new ArgumentException("Product not found");
+                throw new ArgumentException("Produto não encontrado");
 
             product.IsActive = !product.IsActive;
             await _productRepository.UpdateAsync(product);
