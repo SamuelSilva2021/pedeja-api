@@ -80,11 +80,13 @@ namespace PedejaApp.Application.Services
 
         public async Task<Product> ToggleProductStatusAsync(int id)
         {
-            var product = await _productRepository.GetByIdAsync(id);
+            var product = await _productRepository.GetByIdWithIncludesAsync(
+                id, p => p.Category);
+
             if (product == null) throw new ArgumentException("Produto não encontrado");
             
             product.IsActive = !product.IsActive;
-            product.UpdatedAt = DateTime.UtcNow;
+            product.UpdatedAt = DateTime.UtcNow;         
             await _productRepository.UpdateAsync(product);
             return product;
         }
