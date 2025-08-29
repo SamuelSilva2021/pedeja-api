@@ -21,13 +21,11 @@ public class AddonGroupsController(
     /// Obter todos os grupos de adicionais
     /// </summary>
     [HttpGet]
-    public async Task<ActionResult<ApiResponse<IEnumerable<AddonGroupResponseDto>>>> GetAddonGroups([FromQuery] bool activeOnly = false)
+    public async Task<ActionResult<ApiResponse<IEnumerable<AddonGroupResponseDto>>>> GetAddonGroups()
     {
         try
         {
-            var addonGroups = activeOnly 
-                ? await _addonGroupService.GetActiveAddonGroupsAsync()
-                : await _addonGroupService.GetAllAddonGroupsAsync();
+            var addonGroups = await _addonGroupService.GetAllAddonGroupsAsync();
 
             var addonGroupDtos = addonGroups.Select(ag => new AddonGroupResponseDto
             {
@@ -53,8 +51,7 @@ public class AddonGroupsController(
                 }).ToList()
             });
 
-            var message = activeOnly ? "Grupos de adicionais ativos recuperados com sucesso" : "Grupos de adicionais recuperados com sucesso";
-            return Ok(ApiResponse<IEnumerable<AddonGroupResponseDto>>.SuccessResponse(addonGroupDtos, message));
+            return Ok(ApiResponse<IEnumerable<AddonGroupResponseDto>>.SuccessResponse(addonGroupDtos));
         }
         catch (Exception ex)
         {
