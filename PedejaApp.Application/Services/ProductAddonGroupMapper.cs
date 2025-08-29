@@ -7,7 +7,7 @@ namespace PedejaApp.Application.Services;
 /// <summary>
 /// Implementação do mapeador de grupos de adicionais de produtos usando recursos modernos do C# 13
 /// </summary>
-public class ProductAddonGroupMapper : IProductAddonGroupMapper
+public class ProductAddonGroupMapper(IUrlBuilderService urlBuilderService) : IProductAddonGroupMapper
 {
     /// <summary>
     /// Mapeia uma entidade ProductAddonGroup para ProductAddonGroupResponseDto
@@ -134,7 +134,8 @@ public class ProductAddonGroupMapper : IProductAddonGroupMapper
             Description = addon.Description,
             Price = addon.Price,
             IsActive = addon.IsActive,
-            DisplayOrder = addon.DisplayOrder
+            DisplayOrder = addon.DisplayOrder,
+            ImageUrl = urlBuilderService.BuildImageUrl(addon.ImageUrl)
         };
     }
 }

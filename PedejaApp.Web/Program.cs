@@ -110,12 +110,23 @@ else
 // Serve static files
 app.UseStaticFiles();
 
-// Configure uploads directory specifically
+// Configure uploads directory specifically with cache headers
 app.UseStaticFiles(new StaticFileOptions
 {
     FileProvider = new PhysicalFileProvider(
         Path.Combine(builder.Environment.ContentRootPath, "wwwroot", "uploads")),
-    RequestPath = "/uploads"
+    RequestPath = "/uploads",
+    OnPrepareResponse = ctx =>
+    {
+        // Cache images for 1 year in production, 1 hour in development
+        var cacheDuration = app.Environment.IsDevelopment() ? 3600 : 31536000;
+        ctx.Context.Response.Headers.Append("Cache-Control", $"public,max-age={cacheDuration}");
+        ctx.Context.Response.Headers.Append("Expires", DateTime.UtcNow.AddSeconds(cacheDuration).ToString("R"));
+        
+        // Security headers for images
+        ctx.Context.Response.Headers.Append("X-Content-Type-Options", "nosniff");
+        ctx.Context.Response.Headers.Append("Content-Security-Policy", "default-src 'none'; img-src 'self'");
+    }
 });
 
 app.MapControllers();

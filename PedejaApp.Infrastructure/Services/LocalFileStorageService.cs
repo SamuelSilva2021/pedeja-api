@@ -165,6 +165,11 @@ public class LocalFileStorageService : IFileStorageService
         return variants;
     }
 
+    /// <summary>
+    /// Valida se o arquivo é seguro para upload
+    /// </summary>
+    /// <param name="file">Arquivo a ser validado</param>
+    /// <returns>Resultado da validação</returns>
     private FileUploadResult ValidateImageFile(IFormFile file)
     {
         // Check if file exists
@@ -174,6 +179,17 @@ public class LocalFileStorageService : IFileStorageService
             {
                 IsSuccess = false,
                 ErrorMessage = "Arquivo não fornecido ou está vazio."
+            };
+        }
+
+        // Validar nome do arquivo para evitar path traversal
+        var fileName = Path.GetFileName(file.FileName);
+        if (string.IsNullOrWhiteSpace(fileName) || fileName.Contains("..") || fileName.Contains("/") || fileName.Contains("\\"))
+        {
+            return new FileUploadResult
+            {
+                IsSuccess = false,
+                ErrorMessage = "Nome do arquivo inválido."
             };
         }
 
@@ -190,7 +206,7 @@ public class LocalFileStorageService : IFileStorageService
 
         // Check file extension
         var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".webp" };
-        var fileExtension = Path.GetExtension(file.FileName).ToLowerInvariant();
+        var fileExtension = Path.GetExtension(fileName).ToLowerInvariant();
         
         if (!allowedExtensions.Contains(fileExtension))
         {
@@ -219,6 +235,57 @@ public class LocalFileStorageService : IFileStorageService
             };
         }
 
+        // Validar assinatura do arquivo (magic bytes)
+        if (!ValidateFileSignature(file))
+        {
+            return new FileUploadResult
+            {
+                IsSuccess = false,
+                ErrorMessage = "Arquivo não é uma imagem válida ou foi corrompido."
+            };
+        }
+
         return new FileUploadResult { IsSuccess = true };
+    }
+
+    /// <summary>
+    /// Valida a assinatura do arquivo através dos magic bytes
+    /// </summary>
+    /// <param name="file">Arquivo a ser validado</param>
+    /// <returns>True se a assinatura for válida</returns>
+    private bool ValidateFileSignature(IFormFile file)
+    {
+        try
+        {
+            using var stream = file.OpenReadStream();
+            var buffer = new byte[8];
+            stream.Read(buffer, 0, 8);
+            stream.Position = 0;
+
+            // JPEG: FF D8 FF
+            if (buffer[0] == 0xFF && buffer[1] == 0xD8 && buffer[2] == 0xFF)
+                return true;
+
+            // PNG: 89 50 4E 47 0D 0A 1A 0A
+            if (buffer[0] == 0x89 && buffer[1] == 0x50 && buffer[2] == 0x4E && buffer[3] == 0x47 &&
+                buffer[4] == 0x0D && buffer[5] == 0x0A && buffer[6] == 0x1A && buffer[7] == 0x0A)
+                return true;
+
+            // WebP: RIFF....WEBP
+            if (buffer[0] == 0x52 && buffer[1] == 0x49 && buffer[2] == 0x46 && buffer[3] == 0x46)
+            {
+                var webpBuffer = new byte[12];
+                stream.Position = 0;
+                stream.Read(webpBuffer, 0, 12);
+                if (webpBuffer[8] == 0x57 && webpBuffer[9] == 0x45 && webpBuffer[10] == 0x42 && webpBuffer[11] == 0x50)
+                    return true;
+            }
+
+            return false;
+        }
+        catch
+        {
+            return false;
+        }
     }
 }
