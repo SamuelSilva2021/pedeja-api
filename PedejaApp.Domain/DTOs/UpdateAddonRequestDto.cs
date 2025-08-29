@@ -16,6 +16,9 @@ public class UpdateAddonRequestDto
     [Range(0, double.MaxValue, ErrorMessage = "O preço deve ser maior ou igual a zero")]
     public decimal Price { get; set; }
     
+    [Required]
+    public int AddonGroupId { get; set; }
+    
     public int DisplayOrder { get; set; }
     
     public bool IsActive { get; set; }

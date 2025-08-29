@@ -65,13 +65,19 @@ public class AddonService : IAddonService
         if (addon == null)
             throw new ArgumentException("Adicional não encontrado");
 
-        // Validar nome único no grupo
-        if (!await _addonRepository.IsNameUniqueInGroupAsync(request.Name, addon.AddonGroupId, id))
+        // Validar se o novo grupo de adicionais existe
+        var addonGroup = await _addonGroupRepository.GetByIdAsync(request.AddonGroupId);
+        if (addonGroup == null)
+            throw new ArgumentException("Grupo de adicionais não encontrado");
+
+        // Validar nome único no NOVO grupo (se o grupo mudou) ou no grupo atual
+        if (!await _addonRepository.IsNameUniqueInGroupAsync(request.Name, request.AddonGroupId, id))
             throw new ArgumentException("Já existe um adicional com este nome neste grupo");
 
         addon.Name = request.Name.Trim();
         addon.Description = request.Description?.Trim();
         addon.Price = request.Price;
+        addon.AddonGroupId = request.AddonGroupId; // *** ESTA LINHA ESTAVA FALTANDO ***
         addon.DisplayOrder = request.DisplayOrder;
         addon.IsActive = request.IsActive;
         addon.ImageUrl = request.ImageUrl?.Trim();
@@ -122,11 +128,11 @@ public class AddonService : IAddonService
     public async Task<bool> IsNameUniqueInGroupAsync(string name, int addonGroupId, int? excludeId = null) =>
         await _addonRepository.IsNameUniqueInGroupAsync(name, addonGroupId, excludeId);
 
-    public async Task<bool> CanDeleteAddonAsync(int id)
+    public Task<bool> CanDeleteAddonAsync(int id)
     {
         //TODO:
         // Verificar se o adicional está sendo usado em algum pedido
         // Esta lógica pode ser implementada conforme necessário
-        return true;
+        return Task.FromResult(true);
     }
 }
