@@ -164,17 +164,6 @@ public class ProductsController(
 
             try
             {
-                var existingProduct = await _productService.GetProductByIdAsync(id);
-                if (existingProduct == null)
-                {
-                    return NotFound(ApiResponse<ProductDto>.ErrorResponse("Produto não encontrado"));
-                }
-
-                // Validação de negócio
-                var validationResult = await _validationService.ValidateUpdateProductAsync(id, request);
-                if (validationResult.Any())
-                    return BadRequest(ApiResponse<ProductDto>.ErrorResponse(validationResult.ToArray()));
-
                 var updatedProduct = await _productService.UpdateProductFromDtoAsync(id, request);
                 var productDto = _productMapper.MapToDto(updatedProduct);
 

@@ -32,5 +32,8 @@ namespace PedejaApp.Domain.DTOs
         
         // Category information
         public string CategoryName { get; set; } = string.Empty;
+        
+        // Addon Groups information
+        public List<ProductAddonGroupResponseDto> AddonGroups { get; set; } = new();
     }
 }

@@ -7,9 +7,14 @@ namespace PedejaApp.Application.Services;
 /// <summary>
 /// Implementação do mapeador de produtos usando recursos modernos do C# 13
 /// </summary>
-public class ProductMapper(IUrlBuilderService urlBuilderService) : IProductMapper
+public class ProductMapper(
+    IUrlBuilderService urlBuilderService,
+    IProductAddonGroupService productAddonGroupService,
+    IProductAddonGroupMapper productAddonGroupMapper) : IProductMapper
 {
     private readonly IUrlBuilderService _urlBuilderService = urlBuilderService;
+    private readonly IProductAddonGroupService _productAddonGroupService = productAddonGroupService;
+    private readonly IProductAddonGroupMapper _productAddonGroupMapper = productAddonGroupMapper;
 
     /// <summary>
     /// Mapeia uma entidade Product para ProductDto
@@ -30,7 +35,8 @@ public class ProductMapper(IUrlBuilderService urlBuilderService) : IProductMappe
             IsActive = product.IsActive,
             DisplayOrder = product.DisplayOrder,
             CreatedAt = product.CreatedAt,
-            UpdatedAt = product.UpdatedAt
+            UpdatedAt = product.UpdatedAt,
+            AddonGroups = GetProductAddonGroups(product.Id)
         };
     }
 
@@ -83,5 +89,22 @@ public class ProductMapper(IUrlBuilderService urlBuilderService) : IProductMappe
         product.IsActive = request.IsActive;
         product.DisplayOrder = request.DisplayOrder;
         product.UpdatedAt = DateTime.UtcNow;
+    }
+
+    /// <summary>
+    /// Obtém os grupos de adicionais de um produto de forma síncrona
+    /// </summary>
+    private List<ProductAddonGroupResponseDto> GetProductAddonGroups(int productId)
+    {
+        try
+        {
+            var addonGroups = _productAddonGroupService.GetProductAddonGroupsAsync(productId).Result;
+            return _productAddonGroupMapper.MapToDtos(addonGroups).ToList();
+        }
+        catch
+        {
+            // Em caso de erro, retornar lista vazia para não quebrar o fluxo
+            return new List<ProductAddonGroupResponseDto>();
+        }
     }
 }

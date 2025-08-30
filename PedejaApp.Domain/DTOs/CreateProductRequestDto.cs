@@ -28,5 +28,10 @@ namespace PedejaApp.Domain.DTOs
         public bool IsActive { get; set; } = true;
 
         public int DisplayOrder { get; set; }
+
+        /// <summary>
+        /// Grupos de adicionais para associar ao produto durante a criação
+        /// </summary>
+        public List<AddProductAddonGroupRequestDto>? AddonGroups { get; set; }
     }
 }

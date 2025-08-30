@@ -178,12 +178,16 @@ public class ProductAddonGroupService(IProductAddonGroupRepository productAddonG
 
     public async Task<IEnumerable<ProductAddonGroup>> BulkAddAddonGroupsToProductAsync(int productId, IEnumerable<AddProductAddonGroupRequestDto> requests)
     {
+        Console.WriteLine($"🐛 DEBUG - BulkAddAddonGroupsToProductAsync para produto {productId}");
+        Console.WriteLine($"🐛 Requests recebidos: {requests.Count()}");
+        
         // Verificar se produto existe
         var product = await _productRepository.GetByIdAsync(productId);
         if (product == null)
             throw new ArgumentException($"Produto com ID {productId} não encontrado");
 
         var addonGroupIds = requests.Select(r => r.AddonGroupId).ToList();
+        Console.WriteLine($"🐛 AddonGroupIds: [{string.Join(", ", addonGroupIds)}]");
 
         // Verificar se todos os grupos existem
         var existingGroups = new List<int>();
@@ -193,6 +197,7 @@ public class ProductAddonGroupService(IProductAddonGroupRepository productAddonG
             if (group != null)
                 existingGroups.Add(id);
         }
+        Console.WriteLine($"🐛 Grupos existentes: [{string.Join(", ", existingGroups)}]");
 
         var missingGroups = addonGroupIds.Except(existingGroups).ToList();
         if (missingGroups.Any())
@@ -205,8 +210,10 @@ public class ProductAddonGroupService(IProductAddonGroupRepository productAddonG
             if (await _productAddonGroupRepository.ExistsAsync(productId, id))
                 existingAssociations.Add(id);
         }
+        Console.WriteLine($"🐛 Associações já existentes: [{string.Join(", ", existingAssociations)}]");
 
         var newAssociations = requests.Where(r => !existingAssociations.Contains(r.AddonGroupId));
+        Console.WriteLine($"🐛 Novas associações a criar: [{string.Join(", ", newAssociations.Select(a => a.AddonGroupId))}]");
 
         var productAddonGroups = newAssociations.Select(request => new ProductAddonGroup
         {
@@ -218,7 +225,11 @@ public class ProductAddonGroupService(IProductAddonGroupRepository productAddonG
             MaxSelectionsOverride = request.MaxSelectionsOverride
         }).ToList();
 
-        return await _productAddonGroupRepository.AddRangeAsync(productAddonGroups);
+        Console.WriteLine($"🐛 Total de ProductAddonGroups a serem criados: {productAddonGroups.Count}");
+
+        var result = await _productAddonGroupRepository.AddRangeAsync(productAddonGroups);
+        Console.WriteLine($"🐛 ProductAddonGroups criados com sucesso: {result.Count()}");
+        return result;
     }
 
     public async Task BulkRemoveAddonGroupsFromProductAsync(int productId, IEnumerable<int> addonGroupIds)
