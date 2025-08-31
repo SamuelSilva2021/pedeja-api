@@ -17,6 +17,11 @@ public class ProductRepository : Repository<Product>, IProductRepository
             .OrderBy(p => p.DisplayOrder)
             .ToListAsync();
 
+    public override async Task<Product?> GetByIdAsync(int id) =>
+        await _dbSet
+            .Include(p => p.Category)
+            .FirstOrDefaultAsync(x => x.Id == id);
+
     public async Task<IEnumerable<Product>> GetActiveProductsAsync()
     {
         return await _dbSet

@@ -22,7 +22,7 @@ public class ProductService(
     private readonly IProductAddonGroupService _productAddonGroupService = productAddonGroupService;
     private readonly IMapper _mapper = mapper;
 
-    public async Task<IEnumerable<Product>> GetAllProductsAsync() => await _productRepository.GetAllAsync();
+    public async Task<IEnumerable<Product>> GetAllProductsAsync() => await _productRepository.GetAllProductsAsync();
 
     public async Task<IEnumerable<Product>> GetActiveProductsAsync() => await _productRepository.GetActiveProductsAsync();
 

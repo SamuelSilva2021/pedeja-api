@@ -21,14 +21,18 @@ public class ProductMappingProfile : Profile
         // Mapeamento de CreateProductRequestDto para Product
         CreateMap<CreateProductRequestDto, Product>()
             .ForMember(dest => dest.Id, opt => opt.Ignore())
-            .ForMember(dest => dest.Category, opt => opt.Ignore())
+            .ForMember(dest => dest.Category, opt => opt.Ignore()) // Ignorar propriedade de navegação
+            .ForMember(dest => dest.Images, opt => opt.Ignore()) // Ignorar propriedade de navegação
+            .ForMember(dest => dest.AddonGroups, opt => opt.Ignore()) // Ignorar propriedade de navegação
             .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(_ => DateTime.UtcNow))
             .ForMember(dest => dest.UpdatedAt, opt => opt.MapFrom(_ => DateTime.UtcNow));
 
         // Mapeamento de UpdateProductRequest para Product (para atualização)
         CreateMap<UpdateProductRequest, Product>()
             .ForMember(dest => dest.Id, opt => opt.Ignore())
-            .ForMember(dest => dest.Category, opt => opt.Ignore())
+            .ForMember(dest => dest.Category, opt => opt.Ignore()) // Ignorar propriedade de navegação
+            .ForMember(dest => dest.Images, opt => opt.Ignore()) // Ignorar propriedade de navegação
+            .ForMember(dest => dest.AddonGroups, opt => opt.Ignore()) // Ignorar propriedade de navegação
             .ForMember(dest => dest.CreatedAt, opt => opt.Ignore())
             .ForMember(dest => dest.UpdatedAt, opt => opt.MapFrom(_ => DateTime.UtcNow));
 
