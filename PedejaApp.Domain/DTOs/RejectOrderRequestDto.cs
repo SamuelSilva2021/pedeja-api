@@ -1,7 +1,10 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
-namespace PedejaApp.Web.Models.DTOs
+namespace PedejaApp.Domain.DTOs
 {
+    /// <summary>
+    /// DTO para rejeitar um pedido
+    /// </summary>
     public class RejectOrderRequestDto
     {
         [Required]
@@ -10,6 +13,8 @@ namespace PedejaApp.Web.Models.DTOs
 
         [StringLength(500)]
         public string? Notes { get; set; }
-    }
 
+        [StringLength(50)]
+        public string? RejectedBy { get; set; }
+    }
 }

@@ -1,10 +1,9 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+using PedejaApp.Application.Services.Interfaces;
+using PedejaApp.Domain.DTOs;
 using PedejaApp.Domain.Entities;
-using PedejaApp.Infrastructure.Data;
-using PedejaApp.Application.Models;
 using System.ComponentModel.DataAnnotations;
-using PedejaApp.Web.Models.DTOs;
+using ApiResponse = PedejaApp.Domain.DTOs.ApiResponse;
 
 namespace PedejaApp.Web.Controllers;
 
@@ -12,281 +11,258 @@ namespace PedejaApp.Web.Controllers;
 [Route("api/[controller]")]
 public class OrdersController : ControllerBase
 {
-    private readonly ApplicationDbContext _context;
+    private readonly IOrderService _orderService;
+    private readonly ILogger<OrdersController> _logger;
 
-    public OrdersController(ApplicationDbContext context)
+    public OrdersController(IOrderService orderService, ILogger<OrdersController> logger)
     {
-        _context = context;
+        _orderService = orderService;
+        _logger = logger;
     }
 
+    /// <summary>
+    /// Obtém todos os pedidos
+    /// </summary>
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<object>>> GetOrders()
+    public async Task<ActionResult<ApiResponse<IEnumerable<OrderResponseDto>>>> GetOrders()
     {
-        var orders = await _context.Orders
-            .Include(o => o.Items)
-            .OrderByDescending(o => o.CreatedAt)
-            .ToListAsync();
-
-        var response = orders.Select(order => new
+        try
         {
-            Id = order.Id,
-            CustomerName = order.CustomerName,
-            CustomerPhone = order.CustomerPhone,
-            CustomerEmail = order.CustomerEmail,
-            DeliveryAddress = order.DeliveryAddress,
-            Subtotal = order.Subtotal,
-            DeliveryFee = order.DeliveryFee,
-            Total = order.Total,
-            Status = order.Status,
-            IsDelivery = order.IsDelivery,
-            Notes = order.Notes,
-            CreatedAt = order.CreatedAt,
-            UpdatedAt = order.UpdatedAt,
-            QueuePosition = order.QueuePosition,
-            EstimatedPreparationMinutes = order.EstimatedPreparationMinutes,
-            EstimatedDeliveryTime = order.EstimatedDeliveryTime,
-            Items = order.Items.Select(i => new
+            var result = await _orderService.GetOrdersAsync();
+            if (result.IsSuccess)
             {
-                Id = i.Id,
-                ProductId = i.ProductId,
-                ProductName = i.ProductName,
-                UnitPrice = i.UnitPrice,
-                Quantity = i.Quantity,
-                Subtotal = i.Subtotal,
-                Notes = i.Notes
-            }).ToList()
-        });
-
-        return Ok(response);
-    }
-
-    [HttpGet("{id}")]
-    public async Task<ActionResult<object>> GetOrder(int id)
-    {
-        var order = await _context.Orders
-            .Include(o => o.Items)
-            .FirstOrDefaultAsync(o => o.Id == id);
-
-        if (order == null)
-        {
-            return NotFound();
+                return Ok(ApiResponse<IEnumerable<OrderResponseDto>>.SuccessResponse(result.Data!, "Pedidos obtidos com sucesso"));
+            }
+            return BadRequest(ApiResponse<IEnumerable<OrderResponseDto>>.ErrorResponse(result.Error!));
         }
-
-        var response = new
+        catch (Exception ex)
         {
-            Id = order.Id,
-            CustomerName = order.CustomerName,
-            CustomerPhone = order.CustomerPhone,
-            CustomerEmail = order.CustomerEmail,
-            DeliveryAddress = order.DeliveryAddress,
-            Subtotal = order.Subtotal,
-            DeliveryFee = order.DeliveryFee,
-            Total = order.Total,
-            Status = order.Status,
-            IsDelivery = order.IsDelivery,
-            Notes = order.Notes,
-            CreatedAt = order.CreatedAt,
-            UpdatedAt = order.UpdatedAt,
-            QueuePosition = order.QueuePosition,
-            EstimatedPreparationMinutes = order.EstimatedPreparationMinutes,
-            EstimatedDeliveryTime = order.EstimatedDeliveryTime,
-            Items = order.Items.Select(i => new
-            {
-                Id = i.Id,
-                ProductId = i.ProductId,
-                ProductName = i.ProductName,
-                UnitPrice = i.UnitPrice,
-                Quantity = i.Quantity,
-                Subtotal = i.Subtotal,
-                Notes = i.Notes
-            }).ToList()
-        };
-
-        return Ok(response);
+            _logger.LogError(ex, "Erro ao buscar pedidos");
+            return StatusCode(500, ApiResponse<IEnumerable<OrderResponseDto>>.ErrorResponse("Erro interno do servidor"));
+        }
     }
 
-    [HttpPost]
-    public async Task<ActionResult<object>> CreateOrder([FromBody] CreateOrderRequestDto request)
+    /// <summary>
+    /// Obtém um pedido específico por ID
+    /// </summary>
+    [HttpGet("{id}")]
+    public async Task<ActionResult<ApiResponse<OrderResponseDto>>> GetOrder(int id)
     {
-        var order = new Order
+        try
         {
-            CustomerName = request.CustomerName,
-            CustomerPhone = request.CustomerPhone,
-            CustomerEmail = request.CustomerEmail,
-            DeliveryAddress = request.DeliveryAddress,
-            IsDelivery = request.IsDelivery,
-            Notes = request.Notes,
-            Status = OrderStatus.Pending,
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
-        };
-
-        foreach (var item in request.Items)
-        {
-            var product = await _context.Products.FindAsync(item.ProductId);
-            if (product == null)
+            var result = await _orderService.GetOrderByIdAsync(id);
+            if (result.IsSuccess)
             {
-                return BadRequest($"Product with ID {item.ProductId} not found");
+                return Ok(ApiResponse<OrderResponseDto>.SuccessResponse(result.Data!, "Pedido obtido com sucesso"));
+            }
+            return NotFound(ApiResponse<OrderResponseDto>.ErrorResponse(result.Error!));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Erro ao buscar pedido {OrderId}", id);
+            return StatusCode(500, ApiResponse<OrderResponseDto>.ErrorResponse("Erro interno do servidor"));
+        }
+    }
+
+    /// <summary>
+    /// Cria um novo pedido
+    /// </summary>
+    [HttpPost]
+    public async Task<ActionResult<ApiResponse<OrderResponseDto>>> CreateOrder(CreateOrderRequestDto request)
+    {
+        try
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ApiResponse<OrderResponseDto>.ErrorResponse("Dados inválidos"));
             }
 
-            order.Items.Add(new OrderItem
+            var result = await _orderService.CreateOrderAsync(request);
+            if (result.IsSuccess)
             {
-                ProductId = item.ProductId,
-                ProductName = product.Name,
-                UnitPrice = product.Price,
-                Quantity = item.Quantity,
-                Subtotal = product.Price * item.Quantity,
-                Notes = item.Notes
-            });
+                return CreatedAtAction(nameof(GetOrder), new { id = result.Data!.Id }, 
+                    ApiResponse<OrderResponseDto>.SuccessResponse(result.Data, "Pedido criado com sucesso"));
+            }
+            return BadRequest(ApiResponse<OrderResponseDto>.ErrorResponse(result.Error!));
         }
-
-        // Calculate totals
-        order.Subtotal = order.Items.Sum(i => i.Subtotal);
-        order.DeliveryFee = order.IsDelivery ? 5.00m : 0; // Fixed delivery fee for now
-        order.Total = order.Subtotal + order.DeliveryFee;
-
-        _context.Orders.Add(order);
-        await _context.SaveChangesAsync();
-
-        // Return a clean response without circular references
-        var response = new
+        catch (Exception ex)
         {
-            Id = order.Id,
-            CustomerName = order.CustomerName,
-            CustomerPhone = order.CustomerPhone,
-            CustomerEmail = order.CustomerEmail,
-            DeliveryAddress = order.DeliveryAddress,
-            Subtotal = order.Subtotal,
-            DeliveryFee = order.DeliveryFee,
-            Total = order.Total,
-            Status = order.Status,
-            IsDelivery = order.IsDelivery,
-            Notes = order.Notes,
-            CreatedAt = order.CreatedAt,
-            Items = order.Items.Select(i => new
-            {
-                Id = i.Id,
-                ProductId = i.ProductId,
-                ProductName = i.ProductName,
-                UnitPrice = i.UnitPrice,
-                Quantity = i.Quantity,
-                Subtotal = i.Subtotal,
-                Notes = i.Notes
-            }).ToList()
-        };
-
-        return Ok(response);
+            _logger.LogError(ex, "Erro ao criar pedido");
+            return StatusCode(500, ApiResponse<OrderResponseDto>.ErrorResponse("Erro interno do servidor"));
+        }
     }
 
+    /// <summary>
+    /// Atualiza o status de um pedido
+    /// </summary>
     [HttpPut("{id}/status")]
-    public async Task<IActionResult> UpdateOrderStatus(int id, UpdateOrderStatusRequestDto request)
+    public async Task<ActionResult<ApiResponse<OrderResponseDto>>> UpdateOrderStatus(int id, UpdateOrderStatusRequestDto request)
     {
-        var order = await _context.Orders.FindAsync(id);
-        if (order == null)
+        try
         {
-            return NotFound();
-        }
-
-        order.Status = request.Status;
-        order.UpdatedAt = DateTime.UtcNow;
-
-        await _context.SaveChangesAsync();
-        return NoContent();
-    }
-
-    [HttpPost("{id}/accept")]
-    public async Task<ActionResult<object>> AcceptOrder(int id, AcceptOrderRequestDto request)
-    {
-        var order = await _context.Orders.Include(o => o.Items).FirstOrDefaultAsync(o => o.Id == id);
-        if (order == null)
-        {
-            return NotFound();
-        }
-
-        order.Status = OrderStatus.Confirmed;
-        order.EstimatedPreparationMinutes = request.EstimatedPreparationMinutes;
-        order.UpdatedAt = DateTime.UtcNow;
-        
-        if (request.EstimatedPreparationMinutes.HasValue)
-        {
-            order.EstimatedDeliveryTime = DateTime.UtcNow.AddMinutes(request.EstimatedPreparationMinutes.Value);
-        }
-
-        await _context.SaveChangesAsync();
-
-        var response = new
-        {
-            Id = order.Id,
-            CustomerName = order.CustomerName,
-            CustomerPhone = order.CustomerPhone,
-            CustomerEmail = order.CustomerEmail,
-            DeliveryAddress = order.DeliveryAddress,
-            Subtotal = order.Subtotal,
-            DeliveryFee = order.DeliveryFee,
-            Total = order.Total,
-            Status = order.Status,
-            IsDelivery = order.IsDelivery,
-            Notes = order.Notes,
-            CreatedAt = order.CreatedAt,
-            UpdatedAt = order.UpdatedAt,
-            EstimatedPreparationMinutes = order.EstimatedPreparationMinutes,
-            EstimatedDeliveryTime = order.EstimatedDeliveryTime,
-            Items = order.Items.Select(i => new
+            if (!ModelState.IsValid)
             {
-                Id = i.Id,
-                ProductId = i.ProductId,
-                ProductName = i.ProductName,
-                UnitPrice = i.UnitPrice,
-                Quantity = i.Quantity,
-                Subtotal = i.Subtotal,
-                Notes = i.Notes
-            }).ToList()
-        };
+                return BadRequest(ApiResponse<OrderResponseDto>.ErrorResponse("Dados inválidos"));
+            }
 
-        return Ok(response);
+            var result = await _orderService.UpdateOrderStatusAsync(id, request);
+            if (result.IsSuccess)
+            {
+                return Ok(ApiResponse<OrderResponseDto>.SuccessResponse(result.Data!, "Status do pedido atualizado com sucesso"));
+            }
+            return BadRequest(ApiResponse<OrderResponseDto>.ErrorResponse(result.Error!));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Erro ao atualizar status do pedido {OrderId}", id);
+            return StatusCode(500, ApiResponse<OrderResponseDto>.ErrorResponse("Erro interno do servidor"));
+        }
     }
 
+    /// <summary>
+    /// Aceita um pedido
+    /// </summary>
+    [HttpPost("{id}/accept")]
+    public async Task<ActionResult<ApiResponse<OrderResponseDto>>> AcceptOrder(int id, AcceptOrderRequestDto request)
+    {
+        try
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ApiResponse<OrderResponseDto>.ErrorResponse("Dados inválidos"));
+            }
+
+            var result = await _orderService.AcceptOrderAsync(id, request.EstimatedPreparationMinutes, request.Notes, request.UserId);
+            if (result.IsSuccess)
+            {
+                return Ok(ApiResponse<OrderResponseDto>.SuccessResponse(result.Data!, "Pedido aceito com sucesso"));
+            }
+            return BadRequest(ApiResponse<OrderResponseDto>.ErrorResponse(result.Error!));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Erro ao aceitar pedido {OrderId}", id);
+            return StatusCode(500, ApiResponse<OrderResponseDto>.ErrorResponse("Erro interno do servidor"));
+        }
+    }
+
+    /// <summary>
+    /// Rejeita um pedido
+    /// </summary>
     [HttpPost("{id}/reject")]
-    public async Task<ActionResult<object>> RejectOrder(int id, RejectOrderRequestDto request)
+    public async Task<ActionResult<ApiResponse<OrderResponseDto>>> RejectOrder(int id, RejectOrderRequestDto request)
     {
-        var order = await _context.Orders.Include(o => o.Items).FirstOrDefaultAsync(o => o.Id == id);
-        if (order == null)
+        try
         {
-            return NotFound();
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ApiResponse<OrderResponseDto>.ErrorResponse("Dados inválidos"));
+            }
+
+            var result = await _orderService.RejectOrderAsync(id, request.Reason, request.Notes, request.RejectedBy);
+            if (result.IsSuccess)
+            {
+                return Ok(ApiResponse<OrderResponseDto>.SuccessResponse(result.Data!, "Pedido rejeitado com sucesso"));
+            }
+            return BadRequest(ApiResponse<OrderResponseDto>.ErrorResponse(result.Error!));
         }
-
-        order.Status = OrderStatus.Cancelled;
-        order.Notes = string.IsNullOrEmpty(order.Notes) 
-            ? $"Rejeitado: {request.Reason}" 
-            : $"{order.Notes} | Rejeitado: {request.Reason}";
-        order.UpdatedAt = DateTime.UtcNow;
-
-        await _context.SaveChangesAsync();
-
-        var response = new
+        catch (Exception ex)
         {
-            Id = order.Id,
-            CustomerName = order.CustomerName,
-            Status = order.Status,
-            Notes = order.Notes,
-            UpdatedAt = order.UpdatedAt
-        };
-
-        return Ok(response);
+            _logger.LogError(ex, "Erro ao rejeitar pedido {OrderId}", id);
+            return StatusCode(500, ApiResponse<OrderResponseDto>.ErrorResponse("Erro interno do servidor"));
+        }
     }
 
+    /// <summary>
+    /// Exclui um pedido
+    /// </summary>
     [HttpDelete("{id}")]
-    public async Task<IActionResult> DeleteOrder(int id)
+    public async Task<ActionResult<ApiResponse<bool>>> DeleteOrder(int id)
     {
-        var order = await _context.Orders.FindAsync(id);
-        if (order == null)
+        try
         {
-            return NotFound();
+            var result = await _orderService.DeleteOrderAsync(id);
+            if (result.IsSuccess)
+            {
+                return Ok(ApiResponse<bool>.SuccessResponse(result.Data, "Pedido excluído com sucesso"));
+            }
+            return BadRequest(ApiResponse<bool>.ErrorResponse(result.Error!));
         }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Erro ao excluir pedido {OrderId}", id);
+            return StatusCode(500, ApiResponse<bool>.ErrorResponse("Erro interno do servidor"));
+        }
+    }
 
-        _context.Orders.Remove(order);
-        await _context.SaveChangesAsync();
+    /// <summary>
+    /// Obtém pedidos por status
+    /// </summary>
+    [HttpGet("status/{status}")]
+    public async Task<ActionResult<ApiResponse<IEnumerable<OrderResponseDto>>>> GetOrdersByStatus(OrderStatus status)
+    {
+        try
+        {
+            var result = await _orderService.GetOrdersByStatusAsync(status);
+            if (result.IsSuccess)
+            {
+                return Ok(ApiResponse<IEnumerable<OrderResponseDto>>.SuccessResponse(result.Data!, "Pedidos obtidos com sucesso"));
+            }
+            return BadRequest(ApiResponse<IEnumerable<OrderResponseDto>>.ErrorResponse(result.Error!));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Erro ao buscar pedidos por status {Status}", status);
+            return StatusCode(500, ApiResponse<IEnumerable<OrderResponseDto>>.ErrorResponse("Erro interno do servidor"));
+        }
+    }
 
-        return NoContent();
+    /// <summary>
+    /// Obtém pedidos por telefone do cliente
+    /// </summary>
+    [HttpGet("customer/{customerPhone}")]
+    public async Task<ActionResult<ApiResponse<IEnumerable<OrderResponseDto>>>> GetOrdersByCustomer(string customerPhone)
+    {
+        try
+        {
+            var result = await _orderService.GetOrdersByCustomerAsync(customerPhone);
+            if (result.IsSuccess)
+            {
+                return Ok(ApiResponse<IEnumerable<OrderResponseDto>>.SuccessResponse(result.Data!, "Pedidos do cliente obtidos com sucesso"));
+            }
+            return BadRequest(ApiResponse<IEnumerable<OrderResponseDto>>.ErrorResponse(result.Error!));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Erro ao buscar pedidos do cliente {CustomerPhone}", customerPhone);
+            return StatusCode(500, ApiResponse<IEnumerable<OrderResponseDto>>.ErrorResponse("Erro interno do servidor"));
+        }
+    }
+
+    /// <summary>
+    /// Atualiza informações básicas de um pedido
+    /// </summary>
+    [HttpPut("{id}")]
+    public async Task<ActionResult<ApiResponse<OrderResponseDto>>> UpdateOrder(int id, UpdateOrderRequestDto request)
+    {
+        try
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ApiResponse<OrderResponseDto>.ErrorResponse("Dados inválidos"));
+            }
+
+            var result = await _orderService.UpdateOrderAsync(id, request);
+            if (result.IsSuccess)
+            {
+                return Ok(ApiResponse<OrderResponseDto>.SuccessResponse(result.Data!, "Pedido atualizado com sucesso"));
+            }
+            return BadRequest(ApiResponse<OrderResponseDto>.ErrorResponse(result.Error!));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Erro ao atualizar pedido {OrderId}", id);
+            return StatusCode(500, ApiResponse<OrderResponseDto>.ErrorResponse("Erro interno do servidor"));
+        }
     }
 }

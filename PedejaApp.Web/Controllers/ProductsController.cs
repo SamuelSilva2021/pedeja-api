@@ -1,10 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using PedejaApp.Application.Services.Interfaces;
 using PedejaApp.Domain.DTOs;
-using PedejaApp.Domain.Entities;
 using PedejaApp.Web.Models.DTOs;
-using WebDTOs = PedejaApp.Web.Models.DTOs;
-
 namespace PedejaApp.Web.Controllers;
 
 /// <summary>

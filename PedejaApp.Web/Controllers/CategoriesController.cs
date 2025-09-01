@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PedejaApp.Application.Common.Interfaces;
 using PedejaApp.Application.Features.Categories;
+using PedejaApp.Domain.DTOs;
 using PedejaApp.Web.Extensions;
 using PedejaApp.Web.Models.DTOs;
 using System.Linq;

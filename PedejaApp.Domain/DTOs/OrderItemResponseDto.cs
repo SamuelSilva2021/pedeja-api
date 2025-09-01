@@ -1,5 +1,8 @@
-﻿namespace PedejaApp.Web.Models.DTOs
+namespace PedejaApp.Domain.DTOs
 {
+    /// <summary>
+    /// DTO de resposta para itens de pedido
+    /// </summary>
     public class OrderItemResponseDto
     {
         public int Id { get; set; }

@@ -1,11 +1,14 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
-namespace PedejaApp.Web.Models.DTOs
+namespace PedejaApp.Domain.DTOs
 {
+    /// <summary>
+    /// DTO para criação de itens de pedido
+    /// </summary>
     public class CreateOrderItemRequestDto
     {
         [Required]
-        [Range(1, int.MaxValue, ErrorMessage = "Id do produto precisa ser maior que zero 0")]
+        [Range(1, int.MaxValue, ErrorMessage = "Id do produto precisa ser maior que zero")]
         public int ProductId { get; set; }
 
         [Required]
@@ -14,6 +17,7 @@ namespace PedejaApp.Web.Models.DTOs
 
         [StringLength(500)]
         public string? Notes { get; set; }
+        
         public List<CreateOrderItemAddonRequestDto> Addons { get; set; } = new();
     }
 }

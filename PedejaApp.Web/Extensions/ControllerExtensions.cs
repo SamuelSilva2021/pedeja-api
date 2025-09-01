@@ -1,5 +1,7 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
+using PedejaApp.Domain.DTOs;
 using PedejaApp.Web.Models.DTOs;
+using ApiResponse = PedejaApp.Domain.DTOs.ApiResponse;
 
 namespace PedejaApp.Web.Extensions
 {

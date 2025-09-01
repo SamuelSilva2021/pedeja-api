@@ -1,10 +1,9 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace PedejaApp.Domain.Entities
+namespace PedejaApp.Domain.Entities;
+
+public class PaymentRefund : BaseEntity
 {
-    public class PaymentRefund
-    {
-        public int Id { get; set; }
         
         [Required]
         public int PaymentId { get; set; }
@@ -31,5 +30,4 @@ namespace PedejaApp.Domain.Entities
         
         // Navigation property
         public virtual Payment Payment { get; set; } = null!;
-    }
 }

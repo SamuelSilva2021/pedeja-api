@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using PedejaApp.Application.Services.Interfaces;
-using PedejaApp.Web.Models.DTOs;
 using PedejaApp.Domain.DTOs;
+using ApiResponse = PedejaApp.Domain.DTOs.ApiResponse;
 namespace PedejaApp.Web.Controllers;
 
 /// <summary>

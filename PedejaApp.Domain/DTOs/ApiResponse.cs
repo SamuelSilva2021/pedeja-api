@@ -1,7 +1,6 @@
-﻿using System.Linq;
-using static System.Runtime.InteropServices.JavaScript.JSType;
+using System.Linq;
 
-namespace PedejaApp.Web.Models.DTOs
+namespace PedejaApp.Domain.DTOs
 {
     public class ApiResponse<T>
     {
@@ -42,7 +41,13 @@ namespace PedejaApp.Web.Models.DTOs
                 Data = data
             };
         }
+
+        public static ApiResponse<T> BadRequest(string error, T? data = default)
+        {
+            return ErrorResponse(error, data);
+        }
     }
+
     public class ApiResponse : ApiResponse<object>
     {
         public static ApiResponse SuccessResponse(string message = "Operação realizada com sucesso")

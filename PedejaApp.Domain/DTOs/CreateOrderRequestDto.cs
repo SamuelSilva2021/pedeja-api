@@ -1,7 +1,10 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
-namespace PedejaApp.Web.Models.DTOs
+namespace PedejaApp.Domain.DTOs
 {
+    /// <summary>
+    /// DTO para criação de pedidos
+    /// </summary>
     public class CreateOrderRequestDto
     {
         [Required]

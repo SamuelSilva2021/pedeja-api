@@ -1,7 +1,10 @@
-﻿using PedejaApp.Domain.Entities;
+using PedejaApp.Domain.Entities;
 
-namespace PedejaApp.Web.Models.DTOs
+namespace PedejaApp.Domain.DTOs
 {
+    /// <summary>
+    /// DTO de resposta para pedidos
+    /// </summary>
     public class OrderResponseDto
     {
         public int Id { get; set; }
@@ -14,8 +17,12 @@ namespace PedejaApp.Web.Models.DTOs
         public decimal Total { get; set; }
         public OrderStatus Status { get; set; }
         public DateTime CreatedAt { get; set; }
+        public DateTime UpdatedAt { get; set; }
         public bool IsDelivery { get; set; }
         public string? Notes { get; set; }
+        public int? EstimatedPreparationMinutes { get; set; }
+        public DateTime? EstimatedDeliveryTime { get; set; }
+        public int? QueuePosition { get; set; }
         public List<OrderItemResponseDto> Items { get; set; } = new();
     }
 }
