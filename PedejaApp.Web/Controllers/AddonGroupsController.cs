@@ -25,7 +25,7 @@ public class AddonGroupsController(
     {
         try
         {
-            var addonGroups = await _addonGroupService.GetAllAddonGroupsAsync();
+            var addonGroups = await _addonGroupService.GetActiveAddonGroupsAsync();
 
             var addonGroupDtos = addonGroups.Select(ag => new AddonGroupResponseDto
             {
