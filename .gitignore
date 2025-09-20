@@ -59,3 +59,4 @@ nunit-*.xml
 /.vs/PedejaApp/v17
 /.vs/ProjectEvaluation
 /PedejaApp.Web/wwwroot/uploads
+/.vs
