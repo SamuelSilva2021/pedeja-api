@@ -24,16 +24,15 @@ public class CreateCategoryDto
 
 public class UpdateCategoryDto
 {
-    [Required(ErrorMessage = "Nome da categoria é obrigatório")]
     [StringLength(100, ErrorMessage = "Nome deve ter no máximo 100 caracteres")]
-    public string Name { get; set; } = string.Empty;
+    public string? Name { get; set; }
 
     [StringLength(500, ErrorMessage = "Descrição deve ter no máximo 500 caracteres")]
     public string? Description { get; set; }
 
-    public int DisplayOrder { get; set; }
+    public int? DisplayOrder { get; set; }
 
-    public bool IsActive { get; set; } = true;
+    public bool? IsActive { get; set; }
 }
 
 public class ReorderCategoriesDto

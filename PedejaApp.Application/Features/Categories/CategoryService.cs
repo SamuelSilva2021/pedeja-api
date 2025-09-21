@@ -72,33 +72,41 @@ public class CategoryService : ICategoryService
             throw new InvalidOperationException($"Categoria com ID {id} não encontrada");
         }
 
-        _logger.LogInformation("Category before update - DisplayOrder: {DisplayOrder}", category.DisplayOrder);
-
-        // Validar nome único (excluindo a categoria atual)
-        if (await _categoryRepository.IsNameUniqueAsync(updateDto.Name, id))
+        // Apply partial updates
+        if (!string.IsNullOrWhiteSpace(updateDto.Name))
         {
-            throw new InvalidOperationException($"Já existe uma categoria com o nome '{updateDto.Name}'");
+            if (await _categoryRepository.IsNameUniqueAsync(updateDto.Name, id))
+            {
+                throw new InvalidOperationException($"Já existe uma categoria com o nome '{updateDto.Name}'");
+            }
+            category.Name = updateDto.Name;
         }
 
-        category.Name = updateDto.Name;
-        category.Description = updateDto.Description;
-        category.DisplayOrder = updateDto.DisplayOrder;
-        category.IsActive = updateDto.IsActive;
+        // To clear the description, the client must send an empty string "".
+        // Sending null or omitting the field will not change the existing value.
+        if (updateDto.Description != null)
+        {
+            category.Description = updateDto.Description;
+        }
+
+        if (updateDto.DisplayOrder.HasValue)
+        {
+            category.DisplayOrder = updateDto.DisplayOrder.Value;
+        }
+
+        if (updateDto.IsActive.HasValue)
+        {
+            category.IsActive = updateDto.IsActive.Value;
+        }
+
         category.UpdatedAt = DateTime.UtcNow;
 
-        _logger.LogInformation("Category after property assignment - DisplayOrder: {DisplayOrder}", category.DisplayOrder);
-
         await _categoryRepository.UpdateAsync(category);
-
-        _logger.LogInformation("Category after repository update - DisplayOrder: {DisplayOrder}", category.DisplayOrder);
 
         _logger.LogInformation("Categoria atualizada: {CategoryName} (ID: {CategoryId})", 
             category.Name, category.Id);
 
-        var result = MapToDto(category);
-        _logger.LogInformation("Returning CategoryDto with DisplayOrder: {DisplayOrder}", result.DisplayOrder);
-
-        return result;
+        return MapToDto(category);
     }
 
     public async Task<ResultDto<bool>> DeleteCategoryAsync(int id)

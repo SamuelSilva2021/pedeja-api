@@ -148,7 +148,7 @@ public class CategoriesController : ControllerBase
     /// <summary>
     /// Atualizar categoria existente
     /// </summary>
-    [HttpPut("{id}")]
+    [HttpPatch("{id}")]
     public async Task<ActionResult<ApiResponse<CategoryDto>>> UpdateCategory(int id, [FromBody] UpdateCategoryDto updateDto)
     {
         try
