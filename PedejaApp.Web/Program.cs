@@ -3,6 +3,7 @@ using Microsoft.Extensions.FileProviders;
 using PedejaApp.Web.Extensions;
 using PedejaApp.Infrastructure.Data;
 using PedejaApp.Infrastructure.Configurations;
+using PedejaApp.Web.Hubs;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -19,32 +20,25 @@ builder.Services.AddScrutorServices();
 
 builder.Services.AddSwaggerGen();
 
+// Configure SignalR
+builder.Services.AddSignalR(options =>
+{
+    options.EnableDetailedErrors = builder.Environment.IsDevelopment();
+    options.KeepAliveInterval = TimeSpan.FromSeconds(15);
+    options.ClientTimeoutInterval = TimeSpan.FromSeconds(30);
+    options.HandshakeTimeout = TimeSpan.FromSeconds(15);
+    options.MaximumReceiveMessageSize = 32 * 1024; // 32KB
+});
+
 // Configure CORS
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowAngularDev", policy =>
+    options.AddPolicy("AllowAll", policy =>
     {
-        policy.WithOrigins(
-                "http://localhost:4200", 
-                "https://localhost:4200",
-                "http://localhost:5072",
-                "https://localhost:5072",
-                "http://localhost:3000",
-                "https://localhost:3000",
-                "http://localhost:8080",
-                "https://localhost:8080"
-              )
+        policy.SetIsOriginAllowed(_ => true) // Permite qualquer origem incluindo file://
               .AllowAnyHeader()
               .AllowAnyMethod()
               .AllowCredentials();
-    });
-    
-    // Política mais permissiva para desenvolvimento
-    options.AddPolicy("AllowAll", policy =>
-    {
-        policy.AllowAnyOrigin()
-              .AllowAnyHeader()
-              .AllowAnyMethod();
     });
 });
 
@@ -102,12 +96,12 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
-    app.UseCors("AllowAll"); // Política mais permissiva para desenvolvimento
+    app.UseCors("AllowAll");
 }
 else
 {
-    app.UseCors("AllowAngularDev"); // Política restritiva para produção
-    app.UseHttpsRedirection();
+    app.UseSwagger();
+    app.UseSwaggerUI();
 }
 
 // Temporarily disable authentication for development
@@ -138,10 +132,20 @@ app.UseStaticFiles(new StaticFileOptions
 
 app.MapControllers();
 
+// Map SignalR Hub
+app.MapHub<OrderNotificationHub>("/hubs/notifications");
+
 // Health check endpoint
 app.MapGet("/health", () => new { Status = "Healthy", Timestamp = DateTime.UtcNow });
 
 // Test endpoint
 app.MapGet("/api/test", () => new { Message = "Test endpoint working", Timestamp = DateTime.UtcNow });
+
+// SignalR test endpoint
+app.MapGet("/signalr/test", () => new { 
+    Message = "SignalR Hub configured", 
+    HubPath = "/hubs/notifications",
+    Timestamp = DateTime.UtcNow 
+});
 
 app.Run();

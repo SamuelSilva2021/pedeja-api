@@ -4,15 +4,33 @@ using PedejaApp.Domain.DTOs;
 using PedejaApp.Domain.Entities;
 using PedejaApp.Domain.Interfaces;
 using PedejaApp.Web.Models.DTOs;
-using PedejaApp.Domain.Enuns;
 
 namespace PedejaApp.Application.Services;
 
 /// <summary>
 /// Implementação do serviço de pedidos seguindo princípios SOLID e Clean Architecture
 /// </summary>
-public class OrderService(IOrderRepository orderRepository, IProductRepository productRepository, IAddonRepository addonRepository, ILogger<OrderService> logger) : IOrderService
+public class OrderService : IOrderService
 {
+    private readonly IOrderRepository _orderRepository;
+    private readonly IProductRepository _productRepository;
+    private readonly IAddonRepository _addonRepository;
+    private readonly INotificationService _notificationService;
+    private readonly ILogger<OrderService> _logger;
+
+    public OrderService(
+        IOrderRepository orderRepository, 
+        IProductRepository productRepository, 
+        IAddonRepository addonRepository,
+        INotificationService notificationService,
+        ILogger<OrderService> logger)
+    {
+        _orderRepository = orderRepository;
+        _productRepository = productRepository;
+        _addonRepository = addonRepository;
+        _notificationService = notificationService;
+        _logger = logger;
+    }
     /// <summary>
     /// Obtém todos os pedidos
     /// </summary>
@@ -20,7 +38,7 @@ public class OrderService(IOrderRepository orderRepository, IProductRepository p
     {
         try
         {
-            var orders = await orderRepository.GetAllWithIncludesAsync(
+            var orders = await _orderRepository.GetAllWithIncludesAsync(
                 o => o.Items,
                 o => o.StatusHistory,
                 o => o.Rejection);
@@ -30,7 +48,7 @@ public class OrderService(IOrderRepository orderRepository, IProductRepository p
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Erro ao obter pedidos");
+            _logger.LogError(ex, "Erro ao obter pedidos");
             return ResultDto<IEnumerable<OrderResponseDto>>.Fail("Erro interno do servidor");
         }
     }
@@ -42,7 +60,7 @@ public class OrderService(IOrderRepository orderRepository, IProductRepository p
     {
         try
         {
-            var order = await orderRepository.GetByIdWithIncludesAsync(id,
+            var order = await _orderRepository.GetByIdWithIncludesAsync(id,
                 o => o.Items,
                 o => o.StatusHistory,
                 o => o.Rejection);
@@ -55,7 +73,7 @@ public class OrderService(IOrderRepository orderRepository, IProductRepository p
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Erro ao obter pedido {OrderId}", id);
+            _logger.LogError(ex, "Erro ao obter pedido {OrderId}", id);
             return ResultDto<OrderResponseDto>.Fail("Erro interno do servidor");
         }
     }
@@ -88,7 +106,7 @@ public class OrderService(IOrderRepository orderRepository, IProductRepository p
             // Criar itens do pedido
             foreach (var itemDto in requestDto.Items)
             {
-                var product = await productRepository.GetByIdAsync(itemDto.ProductId);
+                var product = await _productRepository.GetByIdAsync(itemDto.ProductId);
                 if (product == null) continue;
 
                 var orderItem = new OrderItem
@@ -104,7 +122,7 @@ public class OrderService(IOrderRepository orderRepository, IProductRepository p
                 // Adicionar addons
                 foreach (var addonDto in itemDto.Addons)
                 {
-                    var addon = await addonRepository.GetByIdAsync(addonDto.AddonId);
+                    var addon = await _addonRepository.GetByIdAsync(addonDto.AddonId);
                     if (addon == null) continue;
 
                     var orderItemAddon = new OrderItemAddon
@@ -128,15 +146,27 @@ public class OrderService(IOrderRepository orderRepository, IProductRepository p
             order.DeliveryFee = order.IsDelivery ? 5.00m : 0; // Taxa fixa de entrega
             order.Total = order.Subtotal + order.DeliveryFee;
 
-            var createdOrder = await orderRepository.AddAsync(order);
+            var createdOrder = await _orderRepository.AddAsync(order);
             var orderDto = MapToOrderResponseDto(createdOrder);
 
-            logger.LogInformation("Pedido {OrderId} criado com sucesso", createdOrder.Id);
+            _logger.LogInformation("Pedido {OrderId} criado com sucesso", createdOrder.Id);
+            
+            // Enviar notificação de novo pedido para administradores
+            try
+            {
+                await _notificationService.NotifyNewOrderAsync(orderDto);
+            }
+            catch (Exception notificationEx)
+            {
+                _logger.LogWarning(notificationEx, "Erro ao enviar notificação de novo pedido {OrderId}", createdOrder.Id);
+                // Não falhar a criação do pedido por erro de notificação
+            }
+            
             return ResultDto<OrderResponseDto>.Success(orderDto);
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Erro ao criar pedido");
+            _logger.LogError(ex, "Erro ao criar pedido");
             return ResultDto<OrderResponseDto>.Fail("Erro interno do servidor");
         }
     }
@@ -148,7 +178,7 @@ public class OrderService(IOrderRepository orderRepository, IProductRepository p
     {
         try
         {
-            var order = await orderRepository.GetByIdAsync(id);
+            var order = await _orderRepository.GetByIdAsync(id);
             if (order == null)
                 return ResultDto<OrderResponseDto>.Fail("Pedido não encontrado");
 
@@ -166,15 +196,15 @@ public class OrderService(IOrderRepository orderRepository, IProductRepository p
             order.EstimatedPreparationMinutes = requestDto.EstimatedPreparationMinutes;
             order.UpdatedAt = DateTime.UtcNow;
 
-            await orderRepository.UpdateAsync(order);
+            await _orderRepository.UpdateAsync(order);
 
             var orderDto = MapToOrderResponseDto(order);
-            logger.LogInformation("Pedido {OrderId} atualizado com sucesso", id);
+            _logger.LogInformation("Pedido {OrderId} atualizado com sucesso", id);
             return ResultDto<OrderResponseDto>.Success(orderDto);
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Erro ao atualizar pedido {OrderId}", id);
+            _logger.LogError(ex, "Erro ao atualizar pedido {OrderId}", id);
             return ResultDto<OrderResponseDto>.Fail("Erro interno do servidor");
         }
     }
@@ -186,21 +216,21 @@ public class OrderService(IOrderRepository orderRepository, IProductRepository p
     {
         try
         {
-            var order = await orderRepository.GetByIdAsync(id);
+            var order = await _orderRepository.GetByIdAsync(id);
             if (order == null)
                 return ResultDto<bool>.Fail("Pedido não encontrado");
 
             if (order.Status != OrderStatus.Pending && order.Status != OrderStatus.Cancelled)
                 return ResultDto<bool>.Fail("Apenas pedidos pendentes ou cancelados podem ser excluídos");
 
-            await orderRepository.DeleteVirtualAsync(id);
+            await _orderRepository.DeleteVirtualAsync(id);
 
-            logger.LogInformation("Pedido {OrderId} excluído com sucesso", id);
+            _logger.LogInformation("Pedido {OrderId} excluído com sucesso", id);
             return ResultDto<bool>.Success(true);
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Erro ao excluir pedido {OrderId}", id);
+            _logger.LogError(ex, "Erro ao excluir pedido {OrderId}", id);
             return ResultDto<bool>.Fail("Erro interno do servidor");
         }
     }
@@ -212,7 +242,7 @@ public class OrderService(IOrderRepository orderRepository, IProductRepository p
     {
         try
         {
-            var order = await orderRepository.GetByIdWithIncludesAsync(id, o => o.StatusHistory);
+            var order = await _orderRepository.GetByIdWithIncludesAsync(id, o => o.StatusHistory);
             if (order == null)
                 return ResultDto<OrderResponseDto>.Fail("Pedido não encontrado");
 
@@ -235,17 +265,39 @@ public class OrderService(IOrderRepository orderRepository, IProductRepository p
             };
 
             order.StatusHistory.Add(statusHistory);
-            await orderRepository.UpdateAsync(order);
+            await _orderRepository.UpdateAsync(order);
 
             var orderDto = MapToOrderResponseDto(order);
-            logger.LogInformation("Status do pedido {OrderId} alterado de {PreviousStatus} para {NewStatus}", 
+            _logger.LogInformation("Status do pedido {OrderId} alterado de {PreviousStatus} para {NewStatus}", 
                 id, previousStatus, requestDto.Status);
+            
+            // Enviar notificação de mudança de status
+            try
+            {
+                await _notificationService.NotifyOrderStatusChangedAsync(id, previousStatus, requestDto.Status, requestDto.Notes);
+                
+                // Notificações específicas por status
+                switch (requestDto.Status)
+                {
+                    case OrderStatus.Ready:
+                        await _notificationService.NotifyOrderReadyAsync(id);
+                        break;
+                    case OrderStatus.Delivered:
+                        await _notificationService.NotifyOrderCompletedAsync(id);
+                        break;
+                }
+            }
+            catch (Exception notificationEx)
+            {
+                _logger.LogWarning(notificationEx, "Erro ao enviar notificação de mudança de status do pedido {OrderId}", id);
+                // Não falhar a atualização por erro de notificação
+            }
             
             return ResultDto<OrderResponseDto>.Success(orderDto);
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Erro ao atualizar status do pedido {OrderId}", id);
+            _logger.LogError(ex, "Erro ao atualizar status do pedido {OrderId}", id);
             return ResultDto<OrderResponseDto>.Fail("Erro interno do servidor");
         }
     }
@@ -257,13 +309,13 @@ public class OrderService(IOrderRepository orderRepository, IProductRepository p
     {
         try
         {
-            var orders = await orderRepository.GetOrdersByStatusAsync(status);
+            var orders = await _orderRepository.GetOrdersByStatusAsync(status);
             var orderDtos = orders.Select(MapToOrderResponseDto);
             return ResultDto<IEnumerable<OrderResponseDto>>.Success(orderDtos);
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Erro ao obter pedidos por status {Status}", status);
+            _logger.LogError(ex, "Erro ao obter pedidos por status {Status}", status);
             return ResultDto<IEnumerable<OrderResponseDto>>.Fail("Erro interno do servidor");
         }
     }
@@ -275,13 +327,13 @@ public class OrderService(IOrderRepository orderRepository, IProductRepository p
     {
         try
         {
-            var orders = await orderRepository.FindAsync(o => o.CustomerPhone == customerPhone);
+            var orders = await _orderRepository.FindAsync(o => o.CustomerPhone == customerPhone);
             var orderDtos = orders.Select(MapToOrderResponseDto);
             return ResultDto<IEnumerable<OrderResponseDto>>.Success(orderDtos);
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Erro ao obter pedidos do cliente {CustomerPhone}", customerPhone);
+            _logger.LogError(ex, "Erro ao obter pedidos do cliente {CustomerPhone}", customerPhone);
             return ResultDto<IEnumerable<OrderResponseDto>>.Fail("Erro interno do servidor");
         }
     }
@@ -293,7 +345,7 @@ public class OrderService(IOrderRepository orderRepository, IProductRepository p
     {
         try
         {
-            var order = await orderRepository.GetByIdAsync(id);
+            var order = await _orderRepository.GetByIdAsync(id);
             if (order == null)
                 return ResultDto<OrderResponseDto>.Fail("Pedido não encontrado");
 
@@ -308,17 +360,28 @@ public class OrderService(IOrderRepository orderRepository, IProductRepository p
             if (!string.IsNullOrEmpty(notes))
                 order.Notes = notes;
 
-            await orderRepository.UpdateAsync(order);
+            await _orderRepository.UpdateAsync(order);
 
             var orderDto = MapToOrderResponseDto(order);
-            logger.LogInformation("Pedido {OrderId} aceito com tempo estimado de {EstimatedMinutes} minutos", 
+            _logger.LogInformation("Pedido {OrderId} aceito com tempo estimado de {EstimatedMinutes} minutos", 
                 id, estimatedPreparationMinutes);
+            
+            // Enviar notificação de pedido aceito
+            try
+            {
+                await _notificationService.NotifyOrderAcceptedAsync(orderDto);
+            }
+            catch (Exception notificationEx)
+            {
+                _logger.LogWarning(notificationEx, "Erro ao enviar notificação de pedido aceito {OrderId}", id);
+                // Não falhar a aceitação por erro de notificação
+            }
             
             return ResultDto<OrderResponseDto>.Success(orderDto);
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Erro ao aceitar pedido {OrderId}", id);
+            _logger.LogError(ex, "Erro ao aceitar pedido {OrderId}", id);
             return ResultDto<OrderResponseDto>.Fail("Erro interno do servidor");
         }
     }
@@ -330,7 +393,7 @@ public class OrderService(IOrderRepository orderRepository, IProductRepository p
     {
         try
         {
-            var order = await orderRepository.GetByIdWithIncludesAsync(id, o => o.Rejection);
+            var order = await _orderRepository.GetByIdWithIncludesAsync(id, o => o.Rejection);
             if (order == null)
                 return ResultDto<OrderResponseDto>.Fail("Pedido não encontrado");
 
@@ -351,16 +414,27 @@ public class OrderService(IOrderRepository orderRepository, IProductRepository p
             };
 
             order.Rejection = rejection;
-            await orderRepository.UpdateAsync(order);
+            await _orderRepository.UpdateAsync(order);
 
             var orderDto = MapToOrderResponseDto(order);
-            logger.LogInformation("Pedido {OrderId} rejeitado. Motivo: {Reason}", id, reason);
+            _logger.LogInformation("Pedido {OrderId} rejeitado. Motivo: {Reason}", id, reason);
+            
+            // Enviar notificação de pedido rejeitado
+            try
+            {
+                await _notificationService.NotifyOrderRejectedAsync(orderDto, reason);
+            }
+            catch (Exception notificationEx)
+            {
+                _logger.LogWarning(notificationEx, "Erro ao enviar notificação de pedido rejeitado {OrderId}", id);
+                // Não falhar a rejeição por erro de notificação
+            }
             
             return ResultDto<OrderResponseDto>.Success(orderDto);
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Erro ao rejeitar pedido {OrderId}", id);
+            _logger.LogError(ex, "Erro ao rejeitar pedido {OrderId}", id);
             return ResultDto<OrderResponseDto>.Fail("Erro interno do servidor");
         }
     }
@@ -438,7 +512,7 @@ public class OrderService(IOrderRepository orderRepository, IProductRepository p
 
         foreach (var item in items)
         {
-            var product = await productRepository.GetByIdAsync(item.ProductId);
+            var product = await _productRepository.GetByIdAsync(item.ProductId);
             if (product == null)
                 return (false, $"Produto com ID {item.ProductId} não encontrado");
 
@@ -451,7 +525,7 @@ public class OrderService(IOrderRepository orderRepository, IProductRepository p
             // Validar addons
             foreach (var addon in item.Addons)
             {
-                var addonEntity = await addonRepository.GetByIdAsync(addon.AddonId);
+                var addonEntity = await _addonRepository.GetByIdAsync(addon.AddonId);
                 if (addonEntity == null)
                     return (false, $"Adicional com ID {addon.AddonId} não encontrado");
 

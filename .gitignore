@@ -71,3 +71,4 @@ appsettings.Production.json
 
 # Uploads folder
 /PedejaApp.Web/wwwroot/uploads
+/docs/Scalability-Improvements-Plan.md
