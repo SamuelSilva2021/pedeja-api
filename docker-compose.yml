@@ -1,0 +1,58 @@
+services:
+  # Banco de dados PostgreSQL
+  postgres:
+    image: postgres:16-alpine
+    container_name: pedeja-postgres
+    environment:
+      POSTGRES_DB: pedeja
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: admin
+      PGDATA: /var/lib/postgresql/data/pgdata
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - pedeja-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d pedeja"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Aplicação PedejaApp
+  pedeja-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: pedeja-api
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_URLS=http://+:8080
+      - ConnectionStrings__DefaultConnection=server=postgres;Database=pedeja;port=5432;uid=postgres;pwd=admin;Encoding=UTF8;
+      - Jwt__Key=your_super_secret_jwt_key_here_change_in_production
+      - Jwt__Issuer=PedejaApp
+      - Jwt__Audience=PedejaApp
+      - FileStorage__BaseUrl=http://localhost:8080/uploads
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - pedeja-network
+    restart: unless-stopped
+    volumes:
+      # Volume para persistir uploads
+      - uploads_data:/app/wwwroot/uploads
+
+volumes:
+  postgres_data:
+    driver: local
+  uploads_data:
+    driver: local
+
+networks:
+  pedeja-network:
+    driver: bridge

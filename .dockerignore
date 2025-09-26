@@ -1,0 +1,62 @@
+# .dockerignore para PedejaApp
+# Exclui arquivos desnecessários do contexto de build do Docker
+
+# Diretórios de build e output
+**/bin/
+**/obj/
+**/out/
+**/publish/
+
+# Arquivos de cache e temporários
+**/.vs/
+**/.vscode/
+**/.idea/
+**/*.user
+**/*.suo
+**/*.cache
+**/.DS_Store
+**/Thumbs.db
+
+# Logs
+**/logs/
+**/*.log
+
+# Arquivos de teste
+**/TestResults/
+**/coverage/
+
+# Node.js (se houver frontend)
+**/node_modules/
+**/npm-debug.log*
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# Docker
+Dockerfile*
+docker-compose*
+.dockerignore
+
+# Documentação
+**/*.md
+**/docs/
+
+# Arquivos de configuração local
+**/.env
+**/.env.local
+**/appsettings.Development.json
+**/appsettings.Local.json
+
+# Uploads e arquivos temporários
+**/wwwroot/uploads/
+**/temp/
+**/tmp/
+
+# Arquivos específicos do projeto
+**/CheckImageUrls.cs
+**/CheckUrls.cs
+**/CheckUrls.csproj
+**/*.sql
+**/tests/
