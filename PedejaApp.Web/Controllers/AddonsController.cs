@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using PedejaApp.Application.Services.Interfaces;
 using PedejaApp.Domain.DTOs;
 using PedejaApp.Domain.Entities;
@@ -12,6 +13,7 @@ namespace PedejaApp.Web.Controllers;
 /// </summary>
 [ApiController]
 [Route("api/[controller]")]
+[Authorize]
 public class AddonsController(
     IAddonService addonService,
     ILogger<AddonsController> logger) : ControllerBase

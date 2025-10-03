@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using PedejaApp.Application.Services.Interfaces;
 using PedejaApp.Domain.DTOs;
 using PedejaApp.Domain.Entities;
@@ -8,6 +9,7 @@ namespace PedejaApp.Web.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize]
 public class OrderQueueController : ControllerBase
 {
     private readonly IOrderService _orderService;

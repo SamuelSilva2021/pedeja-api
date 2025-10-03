@@ -18,7 +18,47 @@ builder.Services.AddEndpointsApiExplorer();
 
 builder.Services.AddScrutorServices();
 
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
+    {
+        Title = "Pedeja API",
+        Version = "v1",
+        Description = "API do sistema Pedeja integrada com autenticação JWT"
+    });
+
+    // Configuração para autenticação JWT no Swagger
+    c.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Type = Microsoft.OpenApi.Models.SecuritySchemeType.Http,
+        Scheme = "Bearer",
+        BearerFormat = "JWT",
+        In = Microsoft.OpenApi.Models.ParameterLocation.Header,
+        Description = @"Autenticação JWT usando o esquema Bearer.
+        
+            **Como usar:**
+            1. Faça login no saas-authentication-api
+            2. Copie o `accessToken` da resposta
+            3. Cole o token no campo abaixo (apenas o token, sem 'Bearer ')
+            4. Clique em 'Authorize' e teste os endpoints protegidos"
+    });
+
+    c.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
+    {
+        {
+            new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+            {
+                Reference = new Microsoft.OpenApi.Models.OpenApiReference
+                {
+                    Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            Array.Empty<string>()
+        }
+    });
+});
 
 // Configure SignalR
 builder.Services.AddSignalR(options =>
@@ -27,7 +67,7 @@ builder.Services.AddSignalR(options =>
     options.KeepAliveInterval = TimeSpan.FromSeconds(15);
     options.ClientTimeoutInterval = TimeSpan.FromSeconds(30);
     options.HandshakeTimeout = TimeSpan.FromSeconds(15);
-    options.MaximumReceiveMessageSize = 32 * 1024; // 32KB
+    options.MaximumReceiveMessageSize = 32 * 1024;
 });
 
 // Configure CORS
@@ -35,7 +75,7 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>
     {
-        policy.SetIsOriginAllowed(_ => true) // Permite qualquer origem incluindo file://
+        policy.SetIsOriginAllowed(_ => true)
               .AllowAnyHeader()
               .AllowAnyMethod()
               .AllowCredentials();
@@ -48,6 +88,9 @@ builder.Services.AddHttpClient();
 
 // Register additional application services
 builder.Services.AddApplicationServices();
+
+// Configure JWT Authentication
+builder.Services.AddJwtAuthentication(builder.Configuration);
 
 // Configure Entity Framework
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
@@ -104,9 +147,9 @@ else
     app.UseSwaggerUI();
 }
 
-// Temporarily disable authentication for development
-// app.UseAuthentication();
-// app.UseAuthorization();
+// Enable authentication and authorization
+app.UseAuthentication();
+app.UseAuthorization();
 
 // Serve static files
 app.UseStaticFiles();

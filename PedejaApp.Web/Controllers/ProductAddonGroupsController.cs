@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using PedejaApp.Application.Services.Interfaces;
 using PedejaApp.Domain.DTOs;
 using ApiResponse = PedejaApp.Domain.DTOs.ApiResponse;
@@ -9,6 +10,7 @@ namespace PedejaApp.Web.Controllers;
 /// </summary>
 [ApiController]
 [Route("api/products/{productId:int}/addon-groups")]
+[Authorize]
 public class ProductAddonGroupsController(
     IProductAddonGroupService productAddonGroupService,
     IProductAddonGroupMapper productAddonGroupMapper,

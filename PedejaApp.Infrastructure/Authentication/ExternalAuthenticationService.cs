@@ -5,27 +5,26 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using Microsoft.IdentityModel.Tokens;
-using System.Net.Http.Json;
 
 namespace PedejaApp.Infrastructure.Authentication;
 
+/// <summary>
+/// Serviço de autenticação externa que valida tokens JWT do saas-authentication-api
+/// </summary>
 public class ExternalAuthenticationService : IAuthenticationService
 {
     private readonly IConfiguration _configuration;
     private readonly ILogger<ExternalAuthenticationService> _logger;
-    private readonly HttpClient _httpClient;
 
     public ExternalAuthenticationService(
         IConfiguration configuration,
-        ILogger<ExternalAuthenticationService> logger,
-        HttpClient httpClient)
+        ILogger<ExternalAuthenticationService> logger)
     {
         _configuration = configuration;
         _logger = logger;
-        _httpClient = httpClient;
     }
 
-    public async Task<bool> ValidateTokenAsync(string token)
+    public Task<bool> ValidateTokenAsync(string token)
     {
         try
         {
@@ -39,10 +38,10 @@ public class ExternalAuthenticationService : IAuthenticationService
             if (string.IsNullOrEmpty(jwtSecret))
             {
                 _logger.LogError("JWT Secret not configured");
-                return false;
+                return Task.FromResult(false);
             }
 
-            var key = Encoding.ASCII.GetBytes(jwtSecret);
+            var key = Encoding.UTF8.GetBytes(jwtSecret);
             
             var validationParameters = new TokenValidationParameters
             {
@@ -56,18 +55,17 @@ public class ExternalAuthenticationService : IAuthenticationService
                 ClockSkew = TimeSpan.Zero
             };
 
-            var principal = tokenHandler.ValidateToken(token, validationParameters, out var validatedToken);
-            
-            return validatedToken != null;
+            tokenHandler.ValidateToken(token, validationParameters, out _);
+            return Task.FromResult(true);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error validating JWT token");
-            return false;
+            _logger.LogWarning(ex, "Token validation failed");
+            return Task.FromResult(false);
         }
     }
 
-    public async Task<ClaimsPrincipal> GetClaimsFromTokenAsync(string token)
+    public Task<ClaimsPrincipal> GetClaimsFromTokenAsync(string token)
     {
         try
         {
@@ -77,48 +75,19 @@ public class ExternalAuthenticationService : IAuthenticationService
             var claims = jsonToken.Claims.ToList();
             var identity = new ClaimsIdentity(claims, "jwt");
             
-            return new ClaimsPrincipal(identity);
+            return Task.FromResult(new ClaimsPrincipal(identity));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error extracting claims from token");
-            return new ClaimsPrincipal();
+            return Task.FromResult(new ClaimsPrincipal());
         }
     }
 
-    public async Task<string> RefreshTokenAsync(string refreshToken)
+    public Task<string> RefreshTokenAsync(string refreshToken)
     {
-        try
-        {
-            // Call external authentication API to refresh token
-            var externalAuthUrl = _configuration["Authentication:ExternalApiUrl"];
-            
-            if (string.IsNullOrEmpty(externalAuthUrl))
-            {
-                _logger.LogError("External authentication URL not configured");
-                return string.Empty;
-            }
-
-            var request = new
-            {
-                refresh_token = refreshToken
-            };
-
-            var response = await _httpClient.PostAsJsonAsync($"{externalAuthUrl}/refresh", request);
-            
-            if (response.IsSuccessStatusCode)
-            {
-                var result = await response.Content.ReadFromJsonAsync<dynamic>();
-                return result?.access_token?.ToString() ?? string.Empty;
-            }
-
-            _logger.LogWarning("Failed to refresh token. Status: {StatusCode}", response.StatusCode);
-            return string.Empty;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error refreshing token");
-            return string.Empty;
-        }
+        // Refresh token deve ser implementado via chamada para o saas-authentication-api
+        // Por enquanto, retorna uma exceção indicando que não está implementado
+        throw new NotImplementedException("Refresh token deve ser realizado através do saas-authentication-api");
     }
 }

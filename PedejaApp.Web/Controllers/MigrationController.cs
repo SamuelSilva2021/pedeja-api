@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using PedejaApp.Infrastructure.Data;
 
@@ -6,6 +7,7 @@ namespace PedejaApp.Web.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize(Roles = "admin")] // Apenas administradores podem acessar migrações
 public class MigrationController : ControllerBase
 {
     private readonly ApplicationDbContext _context;

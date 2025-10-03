@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using PedejaApp.Application.Services.Interfaces;
 using PedejaApp.Domain.DTOs;
 using ApiResponse = PedejaApp.Domain.DTOs.ApiResponse;
@@ -10,6 +11,7 @@ namespace PedejaApp.Web.Controllers;
 /// </summary>
 [ApiController]
 [Route("api/[controller]")]
+[Authorize]
 public class PaymentsController(IPaymentService paymentService, ILogger<PaymentsController> logger) : ControllerBase
 {
     private readonly IPaymentService _paymentService = paymentService;

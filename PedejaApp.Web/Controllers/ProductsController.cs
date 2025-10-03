@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using PedejaApp.Application.Services.Interfaces;
 using PedejaApp.Domain.DTOs;
 using PedejaApp.Web.Models.DTOs;
@@ -9,6 +10,7 @@ namespace PedejaApp.Web.Controllers;
 /// </summary>
 [ApiController]
 [Route("api/[controller]")]
+[Authorize]
 public class ProductsController(
     IProductService productService,
     IProductMapper productMapper,
