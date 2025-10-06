@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using PedejaApp.Application.Common.Interfaces;
 using PedejaApp.Application.Features.Categories;
 using PedejaApp.Domain.DTOs;
+using PedejaApp.Infrastructure.Anotations;
 using PedejaApp.Web.Extensions;
 using PedejaApp.Web.Models.DTOs;
 using System.Linq;
@@ -12,7 +13,7 @@ namespace PedejaApp.Web.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
-public class CategoriesController : ControllerBase
+public class CategoriesController : FoodBaseController
 {
     private readonly ICategoryService _categoryService;
     private readonly ILogger<CategoriesController> _logger;
@@ -29,6 +30,13 @@ public class CategoriesController : ControllerBase
     /// Obter todas as categorias ordenadas por DisplayOrder
     /// </summary>
     [HttpGet]
+    [Produces("application/json")]
+    [MapPermission(MODULE_CATEGORY, OPERATION_SELECT)]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<ApiResponse<IEnumerable<CategoryDto>>>> GetCategories()
     {
         try
